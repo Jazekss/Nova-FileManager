@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- root-path covers internal storage AND removable SD cards -->
+<paths>
+    <root-path name="root" path="." />
+    <external-path name="external" path="." />
+</paths>
