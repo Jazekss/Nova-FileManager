@@ -40,5 +40,8 @@
   "rename": "Rename",
   "cancel": "Cancel",
   "back": "Back",
-  "close": "Close"
+  "close": "Close",
+  "delete": "Delete",
+  "managePhone": "Manage files on phone",
+  "managePhoneNote": "Select and delete files in the phone's shared folders"
 }

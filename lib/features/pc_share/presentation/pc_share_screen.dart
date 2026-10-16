@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/settings/settings_controller.dart';
 import '../../../core/theme/app_theme.dart';
@@ -43,6 +44,13 @@ class _PcShareScreenState extends State<PcShareScreen> {
   /// Entry whose bottom-sheet menu is open — drawn with a soft outline.
   String? _menuPath;
 
+  /// Selected entries (lightbox checkmarks / tap-toggle) — paths.
+  final Set<String> _selected = {};
+
+  /// Prefs key holding the shared root paths — restored on next launch
+  /// so the PC keeps seeing the same folders after an app restart.
+  static const _keyShareRoots = 'pc_share_roots';
+
   static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
   static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
 
@@ -64,7 +72,27 @@ class _PcShareScreenState extends State<PcShareScreen> {
     await _client.load();
     if (!mounted) return;
     setState(() => _ready = true);
-    if (_client.isPaired) _refresh();
+    if (_client.isPaired) {
+      _refresh();
+      _restoreShare();
+    }
+  }
+
+  /// Restarts the share server with the last-picked roots and
+  /// re-registers its URL — makes the shared folders survive app
+  /// restarts (and the desktop's saved phone URL becomes stale-safe).
+  Future<void> _restoreShare() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      final roots = (p.getStringList(_keyShareRoots) ?? [])
+          .where(
+            (r) =>
+                FileSystemEntity.typeSync(r) != FileSystemEntityType.notFound,
+          )
+          .toList();
+      if (roots.isEmpty) return;
+      await _startShare(roots, silent: true);
+    } catch (_) {}
   }
 
   @override
@@ -142,60 +170,141 @@ class _PcShareScreenState extends State<PcShareScreen> {
 
   // --- Preview (stream, without saving) ---
 
-  /// Image lightbox: bytes come over the sealed channel and live only
-  /// in memory — nothing is written to the phone unless the user taps
-  /// the download button.
+  /// Image lightbox over ALL images of the current folder: swipe or use
+  /// the arrows to switch, the check icon marks entries for a batch
+  /// download — marks stay after the lightbox closes.
+  /// Bytes come over the sealed channel and live only in memory.
   Future<void> _previewImage(PcEntry e) async {
+    final images = _entries
+        .where((x) => !x.isDir && _imgExts.contains(_ext(x)))
+        .toList();
+    var idx = images.indexOf(e);
+    if (idx < 0) return;
+    final controller = PageController(initialPage: idx);
     await showDialog<void>(
       context: context,
-      builder: (context) => Dialog.fullscreen(
-        backgroundColor: Colors.black,
-        child: Stack(
-          children: [
-            Center(
-              child: FutureBuilder<Uint8List?>(
-                future: _client.fetch(e),
-                builder: (context, snap) {
-                  if (snap.connectionState != ConnectionState.done) {
-                    return const CircularProgressIndicator();
-                  }
-                  final bytes = snap.data;
-                  if (bytes == null) {
-                    return const Icon(
-                      Icons.broken_image,
-                      color: Colors.white54,
-                      size: 64,
-                    );
-                  }
-                  return InteractiveViewer(
-                    maxScale: 8,
-                    child: Image.memory(bytes),
-                  );
-                },
-              ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setD) {
+          final cur = images[idx];
+          return Dialog.fullscreen(
+            backgroundColor: Colors.black,
+            child: Stack(
+              children: [
+                PageView.builder(
+                  controller: controller,
+                  itemCount: images.length,
+                  onPageChanged: (i) => setD(() => idx = i),
+                  itemBuilder: (context, i) => Center(
+                    child: FutureBuilder<Uint8List?>(
+                      future: _client.fetch(images[i]),
+                      builder: (context, snap) {
+                        if (snap.connectionState != ConnectionState.done) {
+                          return const CircularProgressIndicator();
+                        }
+                        final bytes = snap.data;
+                        if (bytes == null) {
+                          return const Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 64,
+                          );
+                        }
+                        return InteractiveViewer(
+                          maxScale: 8,
+                          child: Image.memory(bytes),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                // Prev / next — swipe also works; arrows make it obvious.
+                if (idx > 0)
+                  Positioned(
+                    left: 4,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.chevron_left,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        onPressed: () => controller.previousPage(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (idx < images.length - 1)
+                  Positioned(
+                    right: 4,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        onPressed: () => controller.nextPage(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  left: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      // Mark for batch download — persists after close.
+                      IconButton(
+                        tooltip: l10n(context).select,
+                        icon: Icon(
+                          _selected.contains(cur.path)
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => setState(
+                          () => setD(
+                            () => _selected.contains(cur.path)
+                                ? _selected.remove(cur.path)
+                                : _selected.add(cur.path),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n(context).download,
+                        icon: const Icon(Icons.download, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _download(cur);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              right: 8,
-              child: IconButton(
-                tooltip: l10n(context).download,
-                icon: const Icon(Icons.download, color: Colors.white),
-                onPressed: () {
-                  Navigator.pop(context);
-                  _download(e);
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -232,11 +341,20 @@ class _PcShareScreenState extends State<PcShareScreen> {
   }
 
   /// Tap on a file: images and videos preview without downloading,
-  /// everything else downloads as before.
+  /// everything else downloads as before. While a selection is active
+  /// (lightbox checkmarks / tap-toggle), taps toggle membership.
   Future<void> _openEntry(PcEntry e) async {
     if (e.isDir) {
       _crumbs.add(e.path);
       await _refresh();
+      return;
+    }
+    if (_selected.isNotEmpty) {
+      setState(
+        () => _selected.contains(e.path)
+            ? _selected.remove(e.path)
+            : _selected.add(e.path),
+      );
       return;
     }
     final ext = _ext(e);
@@ -263,13 +381,29 @@ class _PcShareScreenState extends State<PcShareScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: Icon(
+                  _selected.contains(e.path)
+                      ? Icons.check_box
+                      : Icons.check_box_outline_blank,
+                ),
+                title: Text(tr.select),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(
+                    () => _selected.contains(e.path)
+                        ? _selected.remove(e.path)
+                        : _selected.add(e.path),
+                  );
+                },
+              ),
               if (isMedia)
                 ListTile(
                   leading: const Icon(Icons.visibility_outlined),
                   title: Text(tr.view),
                   onTap: () {
                     Navigator.pop(context);
-                    _openEntry(e);
+                    _clearSelectAndOpen(e);
                   },
                 ),
               ListTile(
@@ -295,6 +429,38 @@ class _PcShareScreenState extends State<PcShareScreen> {
     } finally {
       if (mounted) setState(() => _menuPath = null);
     }
+  }
+
+  /// Opens a file bypassing the selection toggle (used from the ⋮ menu).
+  Future<void> _clearSelectAndOpen(PcEntry e) async {
+    setState(() => _selected.clear());
+    await _openEntry(e);
+  }
+
+  /// Batch-downloads every selected entry into a picked folder.
+  Future<void> _downloadSelected() async {
+    final browser = context.read<FileBrowserController>();
+    final dest = await showFolderPickerDialog(
+      context,
+      volumes: browser.volumes,
+      initialPath: browser.currentPath.isEmpty
+          ? (browser.volumes.isEmpty ? '/' : browser.volumes.first.path)
+          : browser.currentPath,
+    );
+    if (dest == null || !mounted) return;
+    final picked = _entries.where((e) => _selected.contains(e.path)).toList();
+    var ok = 0;
+    for (final e in picked) {
+      try {
+        await _client.download(e, dest);
+        ok++;
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() => _selected.clear());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${l10n(context).downloaded} ($ok)')),
+    );
   }
 
   Future<void> _renameEntry(PcEntry e) async {
@@ -341,6 +507,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
       setState(() {
         _entries = list;
         _loading = false;
+        _selected.clear();
       });
     } on StateError catch (e) {
       if (e.message == 'unpaired') {
@@ -406,54 +573,50 @@ class _PcShareScreenState extends State<PcShareScreen> {
     }
   }
 
-  /// Shares the currently browsed phone folder's files to the PC's right
-  /// panel by starting the existing Wi-Fi share server and registering
-  /// its URL with the desktop.
+  /// Multi-select picker (checkbox selects, tapping a folder opens it)
+  /// then shares all picked folders/files to the PC's right panel.
+  /// Roots are persisted so a phone-side restart re-shares them.
   Future<void> _sharePhoneFolder() async {
     final browser = context.read<FileBrowserController>();
-    final dir = await showFolderPickerDialog(
+    final paths = await showMultiPickDialog(
       context,
       volumes: browser.volumes,
       initialPath: browser.currentPath.isEmpty
           ? (browser.volumes.isEmpty ? '/' : browser.volumes.first.path)
           : browser.currentPath,
+      title: l10n(context).sharePhoneFolder,
     );
-    if (dir == null || !mounted) return;
-    final files = Directory(dir)
-        .listSync()
-        .whereType<File>()
-        .where((f) => !f.path.split('/').last.startsWith('.'))
-        .map(
-          (f) => SharedFile(
-            path: f.path,
-            downloadName: f.path.split('/').last,
-            size: f.lengthSync(),
-          ),
-        )
-        .toList();
+    if (paths == null || !mounted) return;
+    try {
+      await _startShare(paths);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n(context).sharedToPc)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  /// Starts/restarts the share server over [roots] (dirs are browsable,
+  /// files downloadable) and registers the fresh URL with the PC.
+  Future<void> _startShare(List<String> roots, {bool silent = false}) async {
+    final browser = context.read<FileBrowserController>();
     final uploadDir = '${browser.volumes.first.path}/Download/Nova';
-    _shareServer ??= WifiShareServer(
-      uploadDir: Directory(uploadDir),
-      onUnpair: () {
-        // PC asked to disconnect.
-        _shareServer?.stop();
-        _shareServer = null;
-        if (mounted) _unpair();
-      },
-    );
-    await _shareServer!.stop();
+    await _shareServer?.stop();
     _shareServer = WifiShareServer(
       uploadDir: Directory(uploadDir),
       onUnpair: () {
+        // PC asked to disconnect.
         _shareServer = null;
         if (mounted) _unpair();
       },
     );
-    await _shareServer!.start(files);
+    await _shareServer!.start(roots);
     await _client.registerPhoneUrl(_shareServer!.url);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l10n(context).sharedToPc)));
+    final p = await SharedPreferences.getInstance();
+    await p.setStringList(_keyShareRoots, roots);
+    if (!silent && mounted) setState(() {});
   }
 
   @override
@@ -529,6 +692,31 @@ class _PcShareScreenState extends State<PcShareScreen> {
                 child: const Icon(Icons.upload_file),
               )
             : null,
+        // Batch bar — shown while lightbox/menu checkmarks are active.
+        bottomNavigationBar: _selected.isEmpty
+            ? null
+            : SafeArea(
+                child: Container(
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Text(tr.selectedCount(_selected.length)),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: tr.download,
+                        icon: const Icon(Icons.download),
+                        onPressed: _downloadSelected,
+                      ),
+                      IconButton(
+                        tooltip: tr.close,
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setState(() => _selected.clear()),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
         body: !_ready
             ? const Center(child: CircularProgressIndicator())
             : !_client.isPaired
@@ -650,9 +838,10 @@ class _PcShareScreenState extends State<PcShareScreen> {
     );
   }
 
-  /// Soft outline drawn on the tile whose menu is open — helps spot the
-  /// selected item among many similar thumbnails.
-  BoxDecoration _hlDecoration(PcEntry e) => _menuPath == e.path
+  /// Soft outline drawn on the tile whose menu is open or which is
+  /// marked selected — helps spot items among similar thumbnails.
+  BoxDecoration _hlDecoration(PcEntry e) =>
+      _menuPath == e.path || _selected.contains(e.path)
       ? BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.primary,
@@ -668,7 +857,12 @@ class _PcShareScreenState extends State<PcShareScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: _hlDecoration(e),
       child: ListTile(
-        leading: thumbs && !e.isDir
+        leading: _selected.contains(e.path)
+            ? Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+              )
+            : thumbs && !e.isDir
             ? _thumb(e, 44)
             : Icon(e.isDir ? Icons.folder : Icons.insert_drive_file_outlined),
         title: Text(e.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -697,15 +891,28 @@ class _PcShareScreenState extends State<PcShareScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Center(
-                child: thumbs
-                    ? _thumb(e, iconSize)
-                    : Icon(
-                        e.isDir
-                            ? Icons.folder
-                            : Icons.insert_drive_file_outlined,
-                        size: iconSize,
+              child: Stack(
+                children: [
+                  Center(
+                    child: thumbs
+                        ? _thumb(e, iconSize)
+                        : Icon(
+                            e.isDir
+                                ? Icons.folder
+                                : Icons.insert_drive_file_outlined,
+                            size: iconSize,
+                          ),
+                  ),
+                  if (_selected.contains(e.path))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
+                    ),
+                ],
               ),
             ),
             Padding(

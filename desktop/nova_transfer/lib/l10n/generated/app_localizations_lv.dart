@@ -135,4 +135,14 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get close => 'Aizvērt';
+
+  @override
+  String get delete => 'Dzēst';
+
+  @override
+  String get managePhone => 'Pārvaldīt failus telefonā';
+
+  @override
+  String get managePhoneNote =>
+      'Atzīmēt un dzēst failus telefona koplietotajās mapēs';
 }

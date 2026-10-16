@@ -135,4 +135,14 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get close => 'Sulge';
+
+  @override
+  String get delete => 'Kustuta';
+
+  @override
+  String get managePhone => 'Halda telefoni faile';
+
+  @override
+  String get managePhoneNote =>
+      'Vali ja kustuta faile telefoni jagatud kaustades';
 }

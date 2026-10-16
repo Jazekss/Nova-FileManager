@@ -134,4 +134,14 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get close => 'Zamknij';
+
+  @override
+  String get delete => 'Usuń';
+
+  @override
+  String get managePhone => 'Zarządzaj plikami telefonu';
+
+  @override
+  String get managePhoneNote =>
+      'Zaznacz i usuń pliki w udostępnionych folderach telefonu';
 }

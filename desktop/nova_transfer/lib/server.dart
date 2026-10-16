@@ -42,6 +42,11 @@ class PairServer {
   /// GET /apk?token=... so a phone camera scan downloads it.
   String? sharedApk;
 
+  /// Restores a persisted phone share URL on app start — the phone's
+  /// server may still be running, so the panel can reconnect without a
+  /// fresh /api/pair registration.
+  void restorePhoneUrl(String? url) => _phoneUrl = url;
+
   String get token => _token;
 
   static String _newToken() => List.generate(

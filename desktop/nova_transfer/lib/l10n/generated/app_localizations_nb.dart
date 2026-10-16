@@ -135,4 +135,13 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get close => 'Lukk';
+
+  @override
+  String get delete => 'Slett';
+
+  @override
+  String get managePhone => 'Administrer filer på telefonen';
+
+  @override
+  String get managePhoneNote => 'Merk og slett filer i telefonens delte mapper';
 }

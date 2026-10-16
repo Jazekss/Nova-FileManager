@@ -134,4 +134,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get close => 'Schließen';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get managePhone => 'Dateien auf dem Telefon verwalten';
+
+  @override
+  String get managePhoneNote =>
+      'Dateien in den freigegebenen Telefonordnern auswählen und löschen';
 }

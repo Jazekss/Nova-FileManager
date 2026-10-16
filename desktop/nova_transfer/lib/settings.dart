@@ -10,6 +10,8 @@ class DesktopSettings extends ChangeNotifier {
   static const _keyThumbs = 'shareThumbs';
   static const _keyPaneWidth = 'paneWidth';
   static const _keyViewMode = 'viewMode';
+  static const _keyPhoneUrl = 'phoneUrl';
+  static const _keyManagePhone = 'managePhone';
 
   ThemeMode themeMode = ThemeMode.system;
   String? languageCode;
@@ -29,6 +31,13 @@ class DesktopSettings extends ChangeNotifier {
   /// restarts so a paired phone reconnects without rescanning.
   String? pairToken;
 
+  /// Last registered phone share URL — restored on launch so the right
+  /// panel reconnects without the phone re-registering.
+  String? phoneUrl;
+
+  /// Allow file management (select/delete) on phone-shared files.
+  bool managePhone = true;
+
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     themeMode = switch (p.getString(_keyTheme)) {
@@ -42,7 +51,27 @@ class DesktopSettings extends ChangeNotifier {
     showThumbs = p.getBool(_keyThumbs) ?? false;
     paneWidth = p.getDouble(_keyPaneWidth) ?? 300;
     viewMode = p.getString(_keyViewMode) ?? 'small';
+    phoneUrl = p.getString(_keyPhoneUrl);
+    managePhone = p.getBool(_keyManagePhone) ?? true;
     notifyListeners();
+  }
+
+  Future<void> setPhoneUrl(String? url) async {
+    phoneUrl = url;
+    notifyListeners();
+    final p = await SharedPreferences.getInstance();
+    if (url == null) {
+      await p.remove(_keyPhoneUrl);
+    } else {
+      await p.setString(_keyPhoneUrl, url);
+    }
+  }
+
+  Future<void> setManagePhone(bool v) async {
+    managePhone = v;
+    notifyListeners();
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_keyManagePhone, v);
   }
 
   Future<void> setPaneWidth(double w) async {

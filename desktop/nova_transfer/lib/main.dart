@@ -106,12 +106,12 @@ AppLocalizations tr(BuildContext context) => AppLocalizations.of(context)!;
 class _RemoteEntry {
   const _RemoteEntry({
     required this.name,
-    required this.index,
+    required this.path,
     required this.isDir,
     this.size = 0,
   });
   final String name;
-  final int index;
+  final String path;
   final bool isDir;
   final int size;
 }
@@ -128,6 +128,9 @@ class _DesktopHomeState extends State<DesktopHome> {
     token: context.read<DesktopSettings>().pairToken,
     onPhoneChanged: (url) {
       _phoneUrl = url;
+      _phoneCrumbs.clear();
+      _sel.clear();
+      context.read<DesktopSettings>().setPhoneUrl(url);
       if (mounted) setState(() {});
       if (url != null) _refreshPhoneList();
     },
@@ -138,11 +141,18 @@ class _DesktopHomeState extends State<DesktopHome> {
   String? _phoneError;
   Timer? _poll;
 
+  /// Dir navigation inside the phone's shared roots — '' = the roots.
+  final List<String> _phoneCrumbs = [];
+  String get _phoneDir => _phoneCrumbs.isEmpty ? '' : _phoneCrumbs.last;
+
+  /// Marked files (lightbox checkmarks / tile checkboxes) — paths.
+  final Set<String> _sel = {};
+
   /// Left pane width — persisted via DesktopSettings.paneWidth.
   late double _paneW = context.read<DesktopSettings>().paneWidth;
 
-  /// Index of the phone file whose ⋮ menu is open (gets a soft outline).
-  int? _menuIndex;
+  /// Path of the phone file whose ⋮ menu is open (gets a soft outline).
+  String? _menuPath;
 
   @override
   void initState() {
@@ -153,7 +163,15 @@ class _DesktopHomeState extends State<DesktopHome> {
     if (settings.pairToken != _server.token) {
       settings.savePairToken(_server.token);
     }
-    _server.start();
+    // Restore the last registered phone — its share server may still be
+    // running, so the panel reconnects without the phone re-registering.
+    if (settings.phoneUrl != null) {
+      _server.restorePhoneUrl(settings.phoneUrl);
+      _phoneUrl = settings.phoneUrl;
+    }
+    _server.start().then((_) {
+      if (_phoneUrl != null) _refreshPhoneList();
+    });
     // Poll the phone registration so the right panel updates even if the
     // /api/pair callback fired before the widget was ready.
     _poll = Timer.periodic(const Duration(seconds: 4), (_) => _checkPhone());
@@ -214,21 +232,27 @@ class _DesktopHomeState extends State<DesktopHome> {
         .timeout(const Duration(seconds: 5));
   }
 
-  Future<Uint8List?> _phoneThumb(int index) =>
-      _phoneUrl == null ? Future.value() : _phoneGet('/api/thumb?i=$index');
+  Future<Uint8List?> _phoneThumb(String path) => _phoneUrl == null
+      ? Future.value()
+      : _phoneGet('/api/thumb?path=${Uri.encodeQueryComponent(path)}');
 
+  /// Browsable listing: roots when _phoneDir is '', otherwise the dir's
+  /// contents — the phone exposes whole shared folders, not a flat list.
   Future<void> _refreshPhoneList() async {
     if (_phoneUrl == null) return;
     try {
-      final bytes = await _phoneGet('/api/list');
+      final d = _phoneDir;
+      final bytes = await _phoneGet(
+        '/api/list${d.isEmpty ? '' : '?dir=${Uri.encodeQueryComponent(d)}'}',
+      );
       if (bytes == null) throw 'empty';
       final list = (jsonDecode(utf8.decode(bytes)) as List)
           .map(
             (e) => _RemoteEntry(
               name: e['name'] as String,
-              index: e['i'] as int,
-              isDir: false,
-              size: e['size'] as int,
+              path: e['path'] as String,
+              isDir: e['isDir'] as bool,
+              size: (e['size'] as int?) ?? 0,
             ),
           )
           .toList();
@@ -248,6 +272,25 @@ class _DesktopHomeState extends State<DesktopHome> {
     }
   }
 
+  /// Downloads a phone file into [dir] (already picked).
+  Future<void> _phoneDownloadTo(_RemoteEntry f, String dir) async {
+    final bytes = await _phoneGet(
+      '/api/dl?path=${Uri.encodeQueryComponent(f.path)}',
+    );
+    if (bytes == null) throw 'empty';
+    final sep = Platform.pathSeparator;
+    var out = '$dir$sep${f.name}';
+    var n = 1;
+    while (File(out).existsSync()) {
+      final dot = f.name.lastIndexOf('.');
+      out = dot > 0
+          ? '$dir$sep${f.name.substring(0, dot)} ($n)${f.name.substring(dot)}'
+          : '$dir$sep${f.name} ($n)';
+      n++;
+    }
+    await File(out).writeAsBytes(bytes);
+  }
+
   Future<void> _downloadPhoneFile(_RemoteEntry f) async {
     try {
       if (!mounted) return;
@@ -255,19 +298,7 @@ class _DesktopHomeState extends State<DesktopHome> {
         dialogTitle: tr(context).download,
       );
       if (dir == null) return;
-      final bytes = await _phoneGet('/f/${f.index}');
-      if (bytes == null) throw 'empty';
-      final sep = Platform.pathSeparator;
-      var out = '$dir$sep${f.name}';
-      var n = 1;
-      while (File(out).existsSync()) {
-        final dot = f.name.lastIndexOf('.');
-        out = dot > 0
-            ? '$dir$sep${f.name.substring(0, dot)} ($n)${f.name.substring(dot)}'
-            : '$dir$sep${f.name} ($n)';
-        n++;
-      }
-      await File(out).writeAsBytes(bytes);
+      await _phoneDownloadTo(f, dir);
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('${f.name} → $dir')));
@@ -277,89 +308,242 @@ class _DesktopHomeState extends State<DesktopHome> {
     }
   }
 
+  /// Downloads every selected phone file into one picked folder.
+  Future<void> _downloadSelected() async {
+    if (!mounted) return;
+    final dir = await FilePickerPlatform.instance.getDirectoryPath(
+      dialogTitle: tr(context).download,
+    );
+    if (dir == null) return;
+    var ok = 0;
+    for (final p in _sel.toList()) {
+      final f = _phoneFiles.firstWhere(
+        (e) => e.path == p,
+        orElse: () =>
+            _RemoteEntry(name: p.split('/').last, path: p, isDir: false),
+      );
+      if (f.isDir) continue;
+      try {
+        await _phoneDownloadTo(f, dir);
+        ok++;
+      } catch (_) {}
+    }
+    setState(() => _sel.clear());
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$ok → $dir')));
+    }
+  }
+
+  /// Deletes the marked files/folders on the phone (shared roots only)
+  /// — gated by the "Manage files on phone" settings switch.
+  Future<void> _deleteSelected() async {
+    final paths = _sel.toList();
+    var ok = 0;
+    for (final p in paths) {
+      try {
+        await _phonePost('/api/delete', {'path': p});
+        ok++;
+      } catch (_) {}
+    }
+    setState(() => _sel.clear());
+    _refreshPhoneList();
+    if (mounted && ok < paths.length) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${paths.length - ok} failed')));
+    }
+  }
+
+  Future<void> _deletePhoneFile(_RemoteEntry f) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(tr(context).delete),
+        content: Text(f.name),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(tr(context).cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(tr(context).delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await _phonePost('/api/delete', {'path': f.path});
+      _refreshPhoneList();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
   static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
   static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
 
   static String _ext(_RemoteEntry f) =>
       f.name.contains('.') ? f.name.split('.').last.toLowerCase() : '';
 
-  /// In-app lightbox for phone images — bytes stay in memory.
-  /// Videos are written to %TEMP% and opened in the default player.
+  /// Lightbox over ALL images in the current phone dir — arrows/swipe
+  /// switch between them, check icon marks files for a batch download;
+  /// marks persist after closing. Videos open in the system player.
   Future<void> _previewPhoneFile(_RemoteEntry f) async {
     final ext = _ext(f);
-    void onDl() => _downloadPhoneFile(f);
     if (_imgExts.contains(ext)) {
+      final images = _phoneFiles
+          .where((x) => !x.isDir && _imgExts.contains(_ext(x)))
+          .toList();
+      var idx = images.indexOf(f);
+      if (idx < 0) idx = 0;
+      final controller = PageController(initialPage: idx);
       await showDialog<void>(
         context: context,
-        builder: (context) => Dialog(
-          backgroundColor: Colors.black,
-          insetPadding: const EdgeInsets.all(16),
-          child: Stack(
-            children: [
-              Center(
-                child: FutureBuilder<Uint8List?>(
-                  future: _phoneGet('/f/${f.index}'),
-                  builder: (context, snap) =>
-                      snap.connectionState != ConnectionState.done
-                      ? const CircularProgressIndicator()
-                      : snap.data == null
-                      ? const Icon(
-                          Icons.broken_image,
-                          color: Colors.white54,
-                          size: 64,
-                        )
-                      : GestureDetector(
-                          // Right-click downloads the image.
-                          onSecondaryTap: () {
-                            Navigator.pop(context);
-                            onDl();
-                          },
-                          child: InteractiveViewer(
-                            maxScale: 8,
-                            child: Image.memory(snap.data!),
+        builder: (context) => StatefulBuilder(
+          builder: (context, setD) {
+            final cur = images[idx];
+            void dl() => _downloadPhoneFile(cur);
+            return Dialog(
+              backgroundColor: Colors.black,
+              insetPadding: const EdgeInsets.all(16),
+              child: Stack(
+                children: [
+                  Center(
+                    child: PageView.builder(
+                      controller: controller,
+                      itemCount: images.length,
+                      onPageChanged: (i) => setD(() => idx = i),
+                      itemBuilder: (context, i) => FutureBuilder<Uint8List?>(
+                        future: _phoneGet(
+                          '/api/dl?path='
+                          '${Uri.encodeQueryComponent(images[i].path)}',
+                        ),
+                        builder: (context, snap) =>
+                            snap.connectionState != ConnectionState.done
+                            ? const CircularProgressIndicator()
+                            : snap.data == null
+                            ? const Icon(
+                                Icons.broken_image,
+                                color: Colors.white54,
+                                size: 64,
+                              )
+                            : GestureDetector(
+                                // Right-click downloads the image.
+                                onSecondaryTap: () {
+                                  Navigator.pop(context);
+                                  dl();
+                                },
+                                child: InteractiveViewer(
+                                  maxScale: 8,
+                                  child: Image.memory(snap.data!),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  if (idx > 0)
+                    Positioned(
+                      left: 4,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                          onPressed: () => controller.previousPage(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOut,
                           ),
                         ),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: IconButton(
-                  tooltip: tr(context).back,
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: tr(context).download,
-                      icon: const Icon(Icons.download, color: Colors.white),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onDl();
-                      },
+                      ),
                     ),
-                    IconButton(
-                      tooltip: tr(context).close,
-                      icon: const Icon(Icons.close, color: Colors.white),
+                  if (idx < images.length - 1)
+                    Positioned(
+                      right: 4,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                          onPressed: () => controller.nextPage(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOut,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: IconButton(
+                      tooltip: tr(context).back,
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      children: [
+                        // Mark for batch download — persists after close.
+                        IconButton(
+                          tooltip: 'Select',
+                          icon: Icon(
+                            _sel.contains(cur.path)
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => setState(
+                            () => setD(
+                              () => _sel.contains(cur.path)
+                                  ? _sel.remove(cur.path)
+                                  : _sel.add(cur.path),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: tr(context).download,
+                          icon: const Icon(Icons.download, color: Colors.white),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            dl();
+                          },
+                        ),
+                        IconButton(
+                          tooltip: tr(context).close,
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       );
       return;
     }
     if (_videoExts.contains(ext)) {
       try {
-        final bytes = await _phoneGet('/f/${f.index}');
+        final bytes = await _phoneGet(
+          '/api/dl?path=${Uri.encodeQueryComponent(f.path)}',
+        );
         if (bytes == null) throw 'fetch';
         final tmp = Directory.systemTemp.createTempSync('nova_preview');
         final file = File('${tmp.path}\\${f.name}');
@@ -396,7 +580,7 @@ class _DesktopHomeState extends State<DesktopHome> {
     );
     if (newName == null || newName.isEmpty || newName == f.name) return;
     try {
-      await _phonePost('/api/rename', {'i': f.index, 'name': newName});
+      await _phonePost('/api/rename', {'path': f.path, 'name': newName});
       _refreshPhoneList();
     } catch (e) {
       if (mounted) {
@@ -417,7 +601,10 @@ class _DesktopHomeState extends State<DesktopHome> {
     setState(() {
       _phoneUrl = null;
       _phoneFiles = [];
+      _phoneCrumbs.clear();
+      _sel.clear();
     });
+    if (mounted) context.read<DesktopSettings>().setPhoneUrl(null);
   }
 
   Future<void> _addFolder() async {
@@ -691,6 +878,17 @@ class _DesktopHomeState extends State<DesktopHome> {
                   value: settings.showThumbs,
                   onChanged: settings.setShowThumbs,
                 ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(tr(context).managePhone),
+                  subtitle: Text(
+                    tr(context).managePhoneNote,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  value: settings.managePhone,
+                  onChanged: settings.setManagePhone,
+                ),
                 const Divider(height: 28),
                 Text('${tr(context).version}: $_appVersion'),
                 InkWell(
@@ -837,12 +1035,33 @@ class _DesktopHomeState extends State<DesktopHome> {
               error: _phoneError,
               thumbs: settings.showThumbs,
               viewMode: settings.viewMode,
-              menuIndex: _menuIndex,
+              menuPath: _menuPath,
+              crumbs: _phoneCrumbs,
+              selected: _sel,
+              managePhone: settings.managePhone,
               fetchThumb: _phoneThumb,
               onViewMode: (m) => context.read<DesktopSettings>().setViewMode(m),
-              onMenuOpen: (i) => setState(() => _menuIndex = i),
+              onMenuOpen: (p) => setState(() => _menuPath = p),
+              onOpenDir: (d) {
+                _phoneCrumbs.add(d);
+                _refreshPhoneList();
+              },
+              onUp: _phoneCrumbs.isEmpty
+                  ? null
+                  : () {
+                      _phoneCrumbs.removeLast();
+                      _refreshPhoneList();
+                    },
               onPreview: _previewPhoneFile,
               onRename: _renamePhoneFile,
+              onDelete: _deletePhoneFile,
+              onToggleSelect: (f) => setState(
+                () => _sel.contains(f.path)
+                    ? _sel.remove(f.path)
+                    : _sel.add(f.path),
+              ),
+              onDownloadSelected: _downloadSelected,
+              onDeleteSelected: _deleteSelected,
               onRefresh: _refreshPhoneList,
               onDownload: _downloadPhoneFile,
               onDisconnect: _disconnect,
@@ -922,9 +1141,10 @@ class _PcPanel extends StatelessWidget {
   }
 }
 
-/// Right panel: files the phone shared while paired.
 /// Right panel: files the phone shared while paired — Explorer-style
 /// adaptive layout: list, small or large icon grid depending on width.
+/// Dirs are browsable via crumbs; checkboxes (Manage-files setting)
+/// select items for batch download/delete.
 class _PhonePanel extends StatelessWidget {
   const _PhonePanel({
     required this.connected,
@@ -932,12 +1152,21 @@ class _PhonePanel extends StatelessWidget {
     required this.error,
     required this.thumbs,
     required this.viewMode,
-    required this.menuIndex,
+    required this.menuPath,
+    required this.crumbs,
+    required this.selected,
+    required this.managePhone,
     required this.fetchThumb,
     required this.onViewMode,
     required this.onMenuOpen,
+    required this.onOpenDir,
+    required this.onUp,
     required this.onPreview,
     required this.onRename,
+    required this.onDelete,
+    required this.onToggleSelect,
+    required this.onDownloadSelected,
+    required this.onDeleteSelected,
     required this.onRefresh,
     required this.onDownload,
     required this.onDisconnect,
@@ -948,12 +1177,21 @@ class _PhonePanel extends StatelessWidget {
   final String? error;
   final bool thumbs;
   final String viewMode;
-  final int? menuIndex;
-  final Future<Uint8List?> Function(int index) fetchThumb;
+  final String? menuPath;
+  final List<String> crumbs;
+  final Set<String> selected;
+  final bool managePhone;
+  final Future<Uint8List?> Function(String path) fetchThumb;
   final void Function(String) onViewMode;
-  final void Function(int?) onMenuOpen;
+  final void Function(String?) onMenuOpen;
+  final void Function(String) onOpenDir;
+  final VoidCallback? onUp;
   final void Function(_RemoteEntry) onPreview;
   final void Function(_RemoteEntry) onRename;
+  final void Function(_RemoteEntry) onDelete;
+  final void Function(_RemoteEntry) onToggleSelect;
+  final VoidCallback onDownloadSelected;
+  final VoidCallback onDeleteSelected;
   final VoidCallback onRefresh;
   final void Function(_RemoteEntry) onDownload;
   final VoidCallback onDisconnect;
@@ -968,12 +1206,23 @@ class _PhonePanel extends StatelessWidget {
     return _imgExts.contains(ext) || _videoExts.contains(ext);
   }
 
+  void _tap(_RemoteEntry f) {
+    if (f.isDir) {
+      onOpenDir(f.path);
+    } else if (_previewable(f)) {
+      onPreview(f);
+    } else {
+      onDownload(f);
+    }
+  }
+
   Widget _thumbOrIcon(_RemoteEntry f, double size) {
+    if (f.isDir) return Icon(Icons.folder, size: size);
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: thumbs
           ? FutureBuilder<Uint8List?>(
-              future: fetchThumb(f.index),
+              future: fetchThumb(f.path),
               builder: (context, snap) {
                 final b = snap.data;
                 if (b == null) {
@@ -991,20 +1240,21 @@ class _PhonePanel extends StatelessWidget {
     );
   }
 
-  Widget _menu(BuildContext context, _RemoteEntry f, int i) {
+  Widget _menu(BuildContext context, _RemoteEntry f) {
     return PopupMenuButton<String>(
       tooltip: '',
       icon: const Icon(Icons.more_vert, size: 18),
-      onOpened: () => onMenuOpen(i),
+      onOpened: () => onMenuOpen(f.path),
       onCanceled: () => onMenuOpen(null),
       onSelected: (v) {
         onMenuOpen(null);
         if (v == 'preview') onPreview(f);
         if (v == 'download') onDownload(f);
         if (v == 'rename') onRename(f);
+        if (v == 'delete') onDelete(f);
       },
       itemBuilder: (context) => [
-        if (_previewable(f))
+        if (!f.isDir && _previewable(f))
           PopupMenuItem(
             value: 'preview',
             child: ListTile(
@@ -1013,14 +1263,15 @@ class _PhonePanel extends StatelessWidget {
               title: Text(tr(context).view),
             ),
           ),
-        PopupMenuItem(
-          value: 'download',
-          child: ListTile(
-            dense: true,
-            leading: const Icon(Icons.download),
-            title: Text(tr(context).download),
+        if (!f.isDir)
+          PopupMenuItem(
+            value: 'download',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.download),
+              title: Text(tr(context).download),
+            ),
           ),
-        ),
         PopupMenuItem(
           value: 'rename',
           child: ListTile(
@@ -1029,12 +1280,21 @@ class _PhonePanel extends StatelessWidget {
             title: Text(tr(context).rename),
           ),
         ),
+        if (managePhone)
+          PopupMenuItem(
+            value: 'delete',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.delete_outline),
+              title: Text(tr(context).delete),
+            ),
+          ),
       ],
     );
   }
 
   BoxDecoration _hl(BuildContext context, _RemoteEntry f) =>
-      menuIndex == f.index
+      menuPath == f.path || selected.contains(f.path)
       ? BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.primary,
@@ -1053,10 +1313,19 @@ class _PhonePanel extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
+              if (crumbs.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: tr(context).back,
+                  onPressed: onUp,
+                ),
               Expanded(
                 child: Text(
-                  tr(context).phoneFiles,
+                  crumbs.isEmpty
+                      ? tr(context).phoneFiles
+                      : crumbs.last.split('/').last,
                   style: Theme.of(context).textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               SegmentedButton<String>(
@@ -1093,6 +1362,30 @@ class _PhonePanel extends StatelessWidget {
             ],
           ),
         ),
+        // Batch bar for marked items — download to a PC folder or
+        // delete on the phone (Manage-files setting).
+        if (selected.isNotEmpty)
+          Container(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Text('${selected.length} ✓'),
+                const Spacer(),
+                IconButton(
+                  tooltip: tr(context).download,
+                  icon: const Icon(Icons.download),
+                  onPressed: onDownloadSelected,
+                ),
+                if (managePhone)
+                  IconButton(
+                    tooltip: tr(context).delete,
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: onDeleteSelected,
+                  ),
+              ],
+            ),
+          ),
         Expanded(
           child: !connected
               ? Center(child: Text(tr(context).noPhone))
@@ -1106,7 +1399,7 @@ class _PhonePanel extends StatelessWidget {
                       ? ListView.builder(
                           itemCount: files.length,
                           itemBuilder: (context, i) =>
-                              _listTile(context, files[i], i),
+                              _listTile(context, files[i]),
                         )
                       : LayoutBuilder(
                           builder: (context, c) => GridView.builder(
@@ -1122,7 +1415,7 @@ class _PhonePanel extends StatelessWidget {
                                 ),
                             itemCount: files.length,
                             itemBuilder: (context, i) =>
-                                _gridCell(context, files[i], i),
+                                _gridCell(context, files[i]),
                           ),
                         ),
                 ),
@@ -1131,35 +1424,63 @@ class _PhonePanel extends StatelessWidget {
     );
   }
 
-  Widget _listTile(BuildContext context, _RemoteEntry f, int i) {
+  Widget _listTile(BuildContext context, _RemoteEntry f) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: _hl(context, f),
       child: ListTile(
         dense: true,
-        leading: _thumbOrIcon(f, 36),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (managePhone)
+              SizedBox(
+                width: 24,
+                child: Checkbox(
+                  value: selected.contains(f.path),
+                  onChanged: (_) => onToggleSelect(f),
+                ),
+              ),
+            _thumbOrIcon(f, 36),
+          ],
+        ),
         title: Text(f.name, overflow: TextOverflow.ellipsis),
-        subtitle: Text('${(f.size / 1024).toStringAsFixed(1)} KB'),
-        onTap: _previewable(f) ? () => onPreview(f) : () => onDownload(f),
-        trailing: _menu(context, f, i),
+        subtitle: f.isDir
+            ? null
+            : Text('${(f.size / 1024).toStringAsFixed(1)} KB'),
+        onTap: () => _tap(f),
+        trailing: _menu(context, f),
       ),
     );
   }
 
-  Widget _gridCell(BuildContext context, _RemoteEntry f, int i) {
+  Widget _gridCell(BuildContext context, _RemoteEntry f) {
     final iconSize = viewMode == 'large' ? 140.0 : 60.0;
     return Container(
       decoration: _hl(context, f),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        onTap: _previewable(f) ? () => onPreview(f) : () => onDownload(f),
+        onTap: () => _tap(f),
         child: Column(
           children: [
             Expanded(
               child: Stack(
                 children: [
                   Center(child: _thumbOrIcon(f, iconSize)),
-                  Positioned(right: 0, top: 0, child: _menu(context, f, i)),
+                  Positioned(right: 0, top: 0, child: _menu(context, f)),
+                  if (managePhone)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: Checkbox(
+                          value: selected.contains(f.path),
+                          onChanged: (_) => onToggleSelect(f),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

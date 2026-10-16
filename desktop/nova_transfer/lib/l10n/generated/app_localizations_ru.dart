@@ -135,4 +135,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get close => 'Закрыть';
+
+  @override
+  String get delete => 'Удалить';
+
+  @override
+  String get managePhone => 'Управление файлами телефона';
+
+  @override
+  String get managePhoneNote =>
+      'Отметить и удалить файлы в общих папках телефона';
 }

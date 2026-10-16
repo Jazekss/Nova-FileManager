@@ -135,4 +135,14 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get close => 'Stäng';
+
+  @override
+  String get delete => 'Radera';
+
+  @override
+  String get managePhone => 'Hantera filer på telefonen';
+
+  @override
+  String get managePhoneNote =>
+      'Markera och radera filer i telefonens delade mappar';
 }

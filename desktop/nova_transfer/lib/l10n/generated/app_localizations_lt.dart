@@ -135,4 +135,14 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get close => 'Uždaryti';
+
+  @override
+  String get delete => 'Ištrinti';
+
+  @override
+  String get managePhone => 'Tvarkyti telefono failus';
+
+  @override
+  String get managePhoneNote =>
+      'Pažymėti ir trinti failus telefono bendrinamuose aplankuose';
 }

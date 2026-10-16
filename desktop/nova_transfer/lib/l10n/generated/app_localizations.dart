@@ -357,6 +357,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @managePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage files on phone'**
+  String get managePhone;
+
+  /// No description provided for @managePhoneNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Select and delete files in the phone\'s shared folders'**
+  String get managePhoneNote;
 }
 
 class _AppLocalizationsDelegate

@@ -123,6 +123,216 @@ Widget _prop(String label, String value) => Padding(
   ),
 );
 
+/// Multi-select picker: checkbox selects an item (folder OR file),
+/// tapping a folder's icon/name opens it. Returns the picked paths or
+/// null when cancelled. Used by "share to PC" — several folders/files
+/// can be shared at once.
+Future<List<String>?> showMultiPickDialog(
+  BuildContext context, {
+  required List<StorageVolume> volumes,
+  required String initialPath,
+  required String title,
+}) {
+  return showDialog<List<String>>(
+    context: context,
+    builder: (context) => _MultiPickDialog(
+      volumes: volumes,
+      initialPath: initialPath,
+      title: title,
+    ),
+  );
+}
+
+class _MultiPickDialog extends StatefulWidget {
+  const _MultiPickDialog({
+    required this.volumes,
+    required this.initialPath,
+    required this.title,
+  });
+
+  final List<StorageVolume> volumes;
+  final String initialPath;
+  final String title;
+
+  @override
+  State<_MultiPickDialog> createState() => _MultiPickDialogState();
+}
+
+class _MultiPickDialogState extends State<_MultiPickDialog> {
+  late String _path;
+  List<FileSystemEntity> _items = [];
+  final Set<String> _picked = {};
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _path = widget.initialPath;
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final entities = await Directory(_path).list().toList();
+      final visible =
+          entities
+              .where((e) => !e.path.split('/').last.startsWith('.'))
+              .toList()
+            ..sort(
+              (a, b) =>
+                  ((b is Directory ? 1 : 0) - (a is Directory ? 1 : 0))
+                          .compareTo(0) !=
+                      0
+                  ? (b is Directory ? -1 : 1)
+                  : a.path.compareTo(b.path),
+            );
+      setState(() {
+        _items = visible;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _items = [];
+        _loading = false;
+        _error = l10n(context).cannotOpenFolder;
+      });
+    }
+  }
+
+  String get _root {
+    for (final v in widget.volumes) {
+      if (_path == v.path || _path.startsWith('${v.path}/')) return v.path;
+    }
+    return widget.volumes.isNotEmpty ? widget.volumes.first.path : '/';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 380,
+        child: Column(
+          children: [
+            if (widget.volumes.length > 1)
+              Wrap(
+                spacing: AppTokens.spacingSm,
+                children: [
+                  for (final v in widget.volumes)
+                    ChoiceChip(
+                      label: Text(volumeLabel(context, v)),
+                      selected: _path.startsWith(v.path),
+                      onSelected: (_) {
+                        _path = v.path;
+                        _load();
+                      },
+                    ),
+                ],
+              ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.arrow_upward, size: AppTokens.iconSm),
+                label: Text(l10n(context).up),
+                onPressed: _path == _root
+                    ? null
+                    : () {
+                        _path = _path.substring(0, _path.lastIndexOf('/'));
+                        _load();
+                      },
+              ),
+            ),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                  ? Center(child: Text(_error!))
+                  : _items.isEmpty
+                  ? Center(child: Text(l10n(context).noSubfolders))
+                  : ListView(
+                      children: [
+                        for (final e in _items)
+                          Builder(
+                            builder: (context) {
+                              final isDir = e is Directory;
+                              final name = e.path.split('/').last;
+                              final checked = _picked.contains(e.path);
+                              return ListTile(
+                                dense: true,
+                                leading: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      value: checked,
+                                      onChanged: (_) => setState(
+                                        () => checked
+                                            ? _picked.remove(e.path)
+                                            : _picked.add(e.path),
+                                      ),
+                                    ),
+                                    Icon(
+                                      isDir
+                                          ? Icons.folder_outlined
+                                          : Icons.insert_drive_file_outlined,
+                                    ),
+                                  ],
+                                ),
+                                title: Text(name),
+                                // Tap opens folders; tap on files
+                                // toggles their checkbox.
+                                onTap: isDir
+                                    ? () {
+                                        _path = e.path;
+                                        _load();
+                                      }
+                                    : () => setState(
+                                        () => checked
+                                            ? _picked.remove(e.path)
+                                            : _picked.add(e.path),
+                                      ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _path,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n(context).cancel),
+        ),
+        FilledButton(
+          onPressed: _picked.isEmpty
+              ? null
+              : () => Navigator.pop(context, _picked.toList()),
+          child: Text(
+            '${l10n(context).select}'
+            '${_picked.isEmpty ? '' : ' (${_picked.length})'}',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Lets the user pick a destination folder for copy/move.
 /// Navigates directories inside the given volumes.
 /// When [pickFiles] is set, files are listed too and tapping one returns

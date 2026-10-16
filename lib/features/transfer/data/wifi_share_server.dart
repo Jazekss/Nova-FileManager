@@ -20,13 +20,21 @@ class SharedFile {
   final int size;
 }
 
-/// Tiny embedded HTTP server used for LAN file transfer:
-/// - GET /        → upload form + download links for shared files
-/// - GET /f/{i}   → downloads shared file i
-/// - GET /api/list → JSON share list (for companion clients)
-/// - POST /upload → multipart upload, saved into [uploadDir]
+/// Tiny embedded HTTP server used for LAN file transfer.
 ///
-/// No encryption — meant for trusted home/office Wi-Fi only.
+/// Shares an arbitrary list of root paths (files and/or folders) with a
+/// paired PC. Folder contents are browsable — every path request is
+/// restricted to the shared roots. All endpoints except `/` require a
+/// signed request and answer with AES-GCM sealed bytes.
+///
+/// Endpoints:
+/// - GET  /api/list?dir=        → entries (empty dir = shared roots)
+/// - GET  /api/dl?path=         → sealed file bytes
+/// - GET  /api/thumb?path=      → sealed JPEG thumbnail (204 if none)
+/// - POST /api/rename {path,name}
+/// - POST /api/delete {path}
+/// - POST /api/unpair           → drop the pairing
+/// - POST /upload               → sealed multipart into [uploadDir]
 class WifiShareServer {
   WifiShareServer({required this.uploadDir, this.onReceived, this.onUnpair});
 
@@ -39,11 +47,11 @@ class WifiShareServer {
   final void Function()? onUnpair;
 
   HttpServer? _server;
-  List<SharedFile> _shares = const [];
+  List<String> _roots = const [];
   String _shareToken = '';
 
   int get port => _server?.port ?? 0;
-  List<SharedFile> get shares => _shares;
+  List<String> get roots => _roots;
   String? _ip;
 
   /// URL registered with the paired PC — carries `?k=<token>`; every
@@ -61,8 +69,10 @@ class WifiShareServer {
     return null;
   }
 
-  Future<void> start(List<SharedFile> shares) async {
-    _shares = shares;
+  /// [roots] may be file and/or directory paths — directories become
+  /// browsable roots on the paired PC.
+  Future<void> start(List<String> roots) async {
+    _roots = roots;
     _shareToken = List.generate(
       16,
       (_) => Random.secure().nextInt(256).toRadixString(16).padLeft(2, '0'),
@@ -77,6 +87,17 @@ class WifiShareServer {
   }
 
   Future<void> stop() async => _server?.close(force: true);
+
+  /// Absolute [path] must be a shared root or live under one — '/'-style
+  /// separators throughout since Android paths always use them.
+  bool _insideRoots(String path) {
+    final p = path.replaceAll('\\', '/');
+    for (final root in _roots) {
+      final r = root.replaceAll('\\', '/');
+      if (p == r || p.startsWith('$r/')) return true;
+    }
+    return false;
+  }
 
   /// Signed-request auth against this share session's token.
   bool _auth(HttpRequest req) {
@@ -117,12 +138,14 @@ class WifiShareServer {
       }
       if (req.method == 'GET' && req.uri.path == '/api/list') {
         await _serveApiList(req);
-      } else if (req.method == 'GET' && req.uri.path.startsWith('/f/')) {
+      } else if (req.method == 'GET' && req.uri.path == '/api/dl') {
         await _serveFile(req);
       } else if (req.method == 'GET' && req.uri.path.startsWith('/api/thumb')) {
         await _serveThumb(req);
       } else if (req.method == 'POST' && req.uri.path == '/api/rename') {
         await _rename(req);
+      } else if (req.method == 'POST' && req.uri.path == '/api/delete') {
+        await _delete(req);
       } else if (req.method == 'POST' && req.uri.path == '/api/unpair') {
         req.response
           ..statusCode = 200
@@ -157,24 +180,63 @@ class WifiShareServer {
     req.response.close();
   }
 
-  /// Sealed JSON: [{"i":0,"name":"a.txt","size":123}].
+  Map<String, Object?> _entry(FileSystemEntity e) {
+    final isDir = e is Directory;
+    return {
+      'name': e.path.split('/').last,
+      'path': e.path,
+      'isDir': isDir,
+      'size': e is File ? e.lengthSync() : 0,
+    };
+  }
+
+  /// Sealed JSON list. Empty `dir` → shared roots; otherwise the dir's
+  /// contents (must be inside a shared root).
   Future<void> _serveApiList(HttpRequest req) {
-    final json = jsonEncode([
-      for (var i = 0; i < _shares.length; i++)
-        {'i': i, 'name': _shares[i].downloadName, 'size': _shares[i].size},
-    ]);
-    return _seal(req, utf8.encode(json));
+    final dir = req.uri.queryParameters['dir'] ?? '';
+    final List<Map<String, Object?>> entries = [];
+    if (dir.isEmpty) {
+      for (final r in _roots) {
+        try {
+          final type = FileSystemEntity.typeSync(r);
+          if (type == FileSystemEntityType.notFound) continue;
+          entries.add(
+            _entry(
+              type == FileSystemEntityType.directory ? Directory(r) : File(r),
+            ),
+          );
+        } catch (_) {}
+      }
+    } else {
+      if (!_insideRoots(dir) || !Directory(dir).existsSync()) {
+        req.response
+          ..statusCode = 403
+          ..write('Outside shared roots');
+        req.response.close();
+        return Future.value();
+      }
+      for (final e in Directory(dir).listSync()) {
+        if (e.path.split('/').last.startsWith('.')) continue;
+        try {
+          entries.add(_entry(e));
+        } catch (_) {}
+      }
+    }
+    entries.sort((a, b) {
+      final d = (b['isDir'] == true ? 1 : 0) - (a['isDir'] == true ? 1 : 0);
+      return d != 0 ? d : ('${a['name']}').compareTo('${b['name']}');
+    });
+    return _seal(req, utf8.encode(jsonEncode(entries)));
   }
 
   Future<void> _serveFile(HttpRequest req) async {
-    final i = int.tryParse(req.uri.path.substring(3)) ?? -1;
-    if (i < 0 || i >= _shares.length) {
+    final path = req.uri.queryParameters['path'] ?? '';
+    if (path.isEmpty || !_insideRoots(path) || !File(path).existsSync()) {
       req.response.statusCode = 404;
       await req.response.close();
       return;
     }
-    final s = _shares[i];
-    await _seal(req, await File(s.path).readAsBytes());
+    await _seal(req, await File(path).readAsBytes());
   }
 
   static const _channel = MethodChannel('dev.nova.nova_file_manager/storage');
@@ -182,44 +244,36 @@ class WifiShareServer {
   static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
   static const _apkExts = {'apk', 'aab'};
 
-  /// GET /api/thumb?i=N → JPEG/PNG thumbnail for a shared file:
+  /// GET /api/thumb?path=… → JPEG/PNG thumbnail for a shared file:
   /// images are resized locally, video frames and APK icons come from
   /// the native channel. 204 when no thumbnail exists.
   Future<void> _serveThumb(HttpRequest req) async {
-    final i =
-        int.tryParse(req.uri.queryParameters['i'] ?? '') ??
-        int.tryParse(req.uri.queryParameters['idx'] ?? '') ??
-        -1;
-    if (i < 0 || i >= _shares.length) {
-      req.response.statusCode = 204;
-      await req.response.close();
-      return;
-    }
-    final f = File(_shares[i].path);
-    final name = f.path.toLowerCase();
-    final ext = name.contains('.') ? name.split('.').last : '';
+    final path = req.uri.queryParameters['path'] ?? '';
+    final ext = path.toLowerCase().split('.').last;
     List<int>? bytes;
-    try {
-      if (_imgExts.contains(ext)) {
-        final decoded = img.decodeImage(await f.readAsBytes());
-        if (decoded != null) {
-          final thumb = img.copyResize(
-            decoded,
-            width: decoded.width >= decoded.height ? 160 : null,
-            height: decoded.height > decoded.width ? 160 : null,
-          );
-          bytes = img.encodeJpg(thumb, quality: 80);
+    if (_insideRoots(path) && File(path).existsSync()) {
+      try {
+        if (_imgExts.contains(ext)) {
+          final decoded = img.decodeImage(await File(path).readAsBytes());
+          if (decoded != null) {
+            final thumb = img.copyResize(
+              decoded,
+              width: decoded.width >= decoded.height ? 160 : null,
+              height: decoded.height > decoded.width ? 160 : null,
+            );
+            bytes = img.encodeJpg(thumb, quality: 80);
+          }
+        } else if (_apkExts.contains(ext)) {
+          bytes = await _channel.invokeMethod<List<int>>('apkIcon', {
+            'path': path,
+          });
+        } else if (_videoExts.contains(ext)) {
+          bytes = await _channel.invokeMethod<List<int>>('videoThumb', {
+            'path': path,
+          });
         }
-      } else if (_apkExts.contains(ext)) {
-        bytes = await _channel.invokeMethod<List<int>>('apkIcon', {
-          'path': f.path,
-        });
-      } else if (_videoExts.contains(ext)) {
-        bytes = await _channel.invokeMethod<List<int>>('videoThumb', {
-          'path': f.path,
-        });
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
     if (bytes == null) {
       req.response.statusCode = 204;
       await req.response.close();
@@ -228,28 +282,50 @@ class WifiShareServer {
     await _seal(req, bytes);
   }
 
-  /// POST /api/rename {i, name} — renames a shared file on disk.
-  /// The PC's right panel calls this when the user renames a phone file.
+  /// POST /api/rename {path, name} — renames a file inside a shared root.
   Future<void> _rename(HttpRequest req) async {
     final body = await _sealedBody(req);
     final data = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
-    final i = (data['i'] as num?)?.toInt() ?? -1;
+    final path = data['path'] as String? ?? '';
     final name = (data['name'] as String? ?? '').split('/').last;
-    if (i < 0 || i >= _shares.length || name.isEmpty) {
+    if (path.isEmpty || name.isEmpty || !_insideRoots(path)) {
       req.response.statusCode = 400;
       await req.response.close();
       return;
     }
     try {
-      final old = _shares[i];
-      final newPath = '${File(old.path).parent.path}/$name';
-      await File(old.path).rename(newPath);
-      _shares = [
-        for (var j = 0; j < _shares.length; j++)
-          j == i
-              ? SharedFile(path: newPath, downloadName: name, size: old.size)
-              : _shares[j],
-      ];
+      final f = File(path);
+      if (!f.existsSync()) throw 'not-found';
+      await f.rename('${f.parent.path}/$name');
+      await _seal(req, utf8.encode('{"ok":true}'));
+    } catch (e) {
+      req.response
+        ..statusCode = 500
+        ..write('$e');
+      await req.response.close();
+    }
+  }
+
+  /// POST /api/delete {path} — deletes a shared file or folder
+  /// (folders recursively) — restricted to the shared roots.
+  Future<void> _delete(HttpRequest req) async {
+    final body = await _sealedBody(req);
+    final data = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+    final path = data['path'] as String? ?? '';
+    if (path.isEmpty || !_insideRoots(path)) {
+      req.response.statusCode = 400;
+      await req.response.close();
+      return;
+    }
+    try {
+      final type = FileSystemEntity.typeSync(path);
+      if (type == FileSystemEntityType.directory) {
+        await Directory(path).delete(recursive: true);
+      } else if (type == FileSystemEntityType.file) {
+        await File(path).delete();
+      } else {
+        throw 'not-found';
+      }
       await _seal(req, utf8.encode('{"ok":true}'));
     } catch (e) {
       req.response
