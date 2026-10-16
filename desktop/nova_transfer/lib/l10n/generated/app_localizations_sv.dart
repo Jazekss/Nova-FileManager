@@ -120,4 +120,19 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Bild-/video-/APK-förhandsvisningar — långsammare laddning.';
+
+  @override
+  String get view => 'Visa';
+
+  @override
+  String get rename => 'Byt namn';
+
+  @override
+  String get cancel => 'Avbryt';
+
+  @override
+  String get back => 'Tillbaka';
+
+  @override
+  String get close => 'Stäng';
 }

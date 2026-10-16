@@ -120,4 +120,19 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Paveikslėlių/video/APK peržiūros — lėtesnis sąrašo krovimas.';
+
+  @override
+  String get view => 'Peržiūrėti';
+
+  @override
+  String get rename => 'Pervardyti';
+
+  @override
+  String get cancel => 'Atšaukti';
+
+  @override
+  String get back => 'Atgal';
+
+  @override
+  String get close => 'Uždaryti';
 }

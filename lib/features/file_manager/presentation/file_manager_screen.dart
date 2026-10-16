@@ -229,9 +229,14 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
     );
   }
 
+  /// Entry whose bottom-sheet menu is open — its tile gets a soft
+  /// outline so it's visible among many similar thumbnails.
+  String? _menuTargetPath;
+
   void _showContextMenu(FileEntry entry) {
     final browser = context.read<FileBrowserController>();
     final unit = context.read<SettingsController>().sizeUnit;
+    setState(() => _menuTargetPath = entry.path);
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -329,7 +334,9 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _menuTargetPath = null);
+    });
   }
 
   @override
@@ -502,6 +509,7 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
               unit: unit,
               selected: browser.selectedPaths.contains(e.path),
               selectionMode: browser.selectionMode,
+              highlighted: _menuTargetPath == e.path,
               onTap: () => onTap(e),
               onLongPress: () => _showContextMenu(e),
               onMenu: () => _showContextMenu(e),
@@ -526,6 +534,7 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
               large: large,
               selected: browser.selectedPaths.contains(e.path),
               selectionMode: browser.selectionMode,
+              highlighted: _menuTargetPath == e.path,
               onTap: () => onTap(e),
               onLongPress: () => _showContextMenu(e),
             );

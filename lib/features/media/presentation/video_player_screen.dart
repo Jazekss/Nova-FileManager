@@ -178,49 +178,86 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         _scheduleHide();
                       },
                     ),
+                    // Top overlay: back arrow + file name.
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: SafeArea(
+                        child: Container(
+                          color: Colors.black45,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTokens.spacingXs,
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                color: Colors.white,
+                                icon: const Icon(Icons.arrow_back),
+                                onPressed: () =>
+                                    Navigator.of(context).maybePop(),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  _name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Bottom controls — SafeArea keeps them above the
+                    // system navigation bar.
                     Positioned(
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: Container(
-                        color: Colors.black45,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingSm,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              _fmt(shown),
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: shown.inMilliseconds
-                                    .clamp(0, duration.inMilliseconds)
-                                    .toDouble(),
-                                max: duration.inMilliseconds.toDouble().clamp(
-                                  1,
-                                  double.infinity,
-                                ),
-                                onChanged: (v) => _controller.seekTo(
-                                  Duration(milliseconds: v.round()),
+                      child: SafeArea(
+                        top: false,
+                        child: Container(
+                          color: Colors.black45,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTokens.spacingSm,
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                _fmt(shown),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: shown.inMilliseconds
+                                      .clamp(0, duration.inMilliseconds)
+                                      .toDouble(),
+                                  max: duration.inMilliseconds.toDouble().clamp(
+                                    1,
+                                    double.infinity,
+                                  ),
+                                  onChanged: (v) => _controller.seekTo(
+                                    Duration(milliseconds: v.round()),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              _fmt(duration),
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            IconButton(
-                              color: Colors.white,
-                              icon: Icon(
-                                _fullscreen
-                                    ? Icons.fullscreen_exit
-                                    : Icons.fullscreen,
+                              Text(
+                                _fmt(duration),
+                                style: const TextStyle(color: Colors.white),
                               ),
-                              onPressed: _toggleFullscreen,
-                            ),
-                          ],
+                              IconButton(
+                                color: Colors.white,
+                                icon: Icon(
+                                  _fullscreen
+                                      ? Icons.fullscreen_exit
+                                      : Icons.fullscreen,
+                                ),
+                                onPressed: _toggleFullscreen,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -230,15 +267,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ),
           );
 
-    if (_fullscreen) {
-      return Scaffold(body: body, backgroundColor: Colors.black);
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      ),
-      body: body,
-      backgroundColor: Colors.black,
-    );
+    // Same overlay layout in both modes — back/name on top, controls
+    // above the navigation bar, everything auto-hides after 3 s.
+    return Scaffold(body: body, backgroundColor: Colors.black);
   }
 }

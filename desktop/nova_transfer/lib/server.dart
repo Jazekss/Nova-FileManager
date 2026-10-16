@@ -140,8 +140,7 @@ class PairServer {
 
   /// /apk is the only route where the raw token is accepted — the phone
   /// camera opens it in a browser that cannot sign or decrypt.
-  bool _authApk(HttpRequest req) =>
-      req.uri.queryParameters['token'] == _token;
+  bool _authApk(HttpRequest req) => req.uri.queryParameters['token'] == _token;
 
   Future<void> _handle(HttpRequest req) async {
     try {
@@ -181,6 +180,8 @@ class PairServer {
         _json(req, {'url': _phoneUrl});
       } else if (req.method == 'GET' && p == '/api/thumb') {
         await _serveThumb(req);
+      } else if (req.method == 'POST' && p == '/api/rename') {
+        await _rename(req);
       } else {
         req.response
           ..statusCode = 404
@@ -274,10 +275,7 @@ class PairServer {
     final f = File(path);
     final name = path.split(Platform.pathSeparator).last;
     req.response.headers
-      ..contentType = ContentType(
-        'application',
-        'vnd.android.package-archive',
-      )
+      ..contentType = ContentType('application', 'vnd.android.package-archive')
       ..contentLength = await f.length()
       ..set(
         'Content-Disposition',
@@ -310,6 +308,37 @@ class PairServer {
       await _sealed(req, img.encodeJpg(thumb, quality: 80));
     } catch (_) {
       req.response.statusCode = 204;
+      await req.response.close();
+    }
+  }
+
+  /// POST /api/rename {path, name} — renames a file inside a shared
+  /// folder (phone can rename PC files while browsing).
+  Future<void> _rename(HttpRequest req) async {
+    try {
+      final body = await _body(req);
+      final data = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+      final path = data['path'] as String? ?? '';
+      final name = (data['name'] as String? ?? '')
+          .split(Platform.pathSeparator)
+          .last;
+      if (path.isEmpty || name.isEmpty || !_insideShare(path)) {
+        req.response.statusCode = 403;
+        await req.response.close();
+        return;
+      }
+      final f = File(path);
+      if (!f.existsSync()) {
+        req.response.statusCode = 404;
+        await req.response.close();
+        return;
+      }
+      await f.rename('${f.parent.path}${Platform.pathSeparator}$name');
+      _json(req, {'ok': true});
+    } catch (e) {
+      req.response
+        ..statusCode = 500
+        ..write('$e');
       await req.response.close();
     }
   }

@@ -120,4 +120,19 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Pildi/video/APK eelvaated — aeglasem laadimine.';
+
+  @override
+  String get view => 'Vaata';
+
+  @override
+  String get rename => 'Nimeta ümber';
+
+  @override
+  String get cancel => 'Tühista';
+
+  @override
+  String get back => 'Tagasi';
+
+  @override
+  String get close => 'Sulge';
 }

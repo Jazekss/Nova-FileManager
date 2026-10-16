@@ -131,6 +131,14 @@ class PcClient {
     return _get('/api/thumb', {'path': e.path});
   }
 
+  /// Fetches the whole file into memory for preview without saving —
+  /// used by the in-app image lightbox / video preview.
+  Future<Uint8List?> fetch(PcEntry e) => _get('/api/dl', {'path': e.path});
+
+  /// Renames a file inside the PC's shared folder.
+  Future<void> rename(PcEntry e, String newName) =>
+      _post('/api/rename', {'path': e.path, 'name': newName});
+
   /// Downloads [entry] into [destDir]; returns the written path.
   Future<String> download(PcEntry entry, String destDir) async {
     final bytes = await _get('/api/dl', {'path': entry.path});

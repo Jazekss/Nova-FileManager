@@ -36,6 +36,7 @@ class FileListTile extends StatelessWidget {
     required this.unit,
     required this.selected,
     required this.selectionMode,
+    this.highlighted = false,
     this.onTap,
     this.onLongPress,
     this.onMenu,
@@ -45,36 +46,51 @@ class FileListTile extends StatelessWidget {
   final SizeUnit unit;
   final bool selected;
   final bool selectionMode;
+
+  /// Soft outline while the entry's context menu is open.
+  final bool highlighted;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final VoidCallback? onMenu;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          EntryIcon(entry: entry, size: 44),
-          if (selectionMode) SelectionBadge(selected: selected),
-        ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: highlighted
+          ? BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      child: ListTile(
+        leading: Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            EntryIcon(entry: entry, size: 44),
+            if (selectionMode) SelectionBadge(selected: selected),
+          ],
+        ),
+        title: Text(entry.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          '${entry.isDirectory ? l10n(context).typeFolder : formatBytes(entry.size, unit)}'
+          ' · ${formatDateTime(entry.modified)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        selected: selected,
+        trailing: selectionMode
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.more_vert, size: 20),
+                onPressed: onMenu,
+              ),
+        onTap: onTap,
+        onLongPress: onLongPress,
       ),
-      title: Text(entry.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        '${entry.isDirectory ? l10n(context).typeFolder : formatBytes(entry.size, unit)}'
-        ' · ${formatDateTime(entry.modified)}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      selected: selected,
-      trailing: selectionMode
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onPressed: onMenu,
-            ),
-      onTap: onTap,
-      onLongPress: onLongPress,
     );
   }
 }
@@ -90,6 +106,7 @@ class FileGridCell extends StatelessWidget {
     required this.selected,
     required this.selectionMode,
     required this.large,
+    this.highlighted = false,
     this.onTap,
     this.onLongPress,
   });
@@ -99,6 +116,9 @@ class FileGridCell extends StatelessWidget {
   final bool selected;
   final bool selectionMode;
   final bool large;
+
+  /// Soft outline while the entry's context menu is open.
+  final bool highlighted;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
@@ -111,6 +131,12 @@ class FileGridCell extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       color: selected ? scheme.primaryContainer : null,
+      shape: highlighted
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: scheme.primary, width: 2),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,

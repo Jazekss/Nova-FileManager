@@ -120,4 +120,19 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Превью фото/видео/APK — список грузится медленнее.';
+
+  @override
+  String get view => 'Просмотр';
+
+  @override
+  String get rename => 'Переименовать';
+
+  @override
+  String get cancel => 'Отмена';
+
+  @override
+  String get back => 'Назад';
+
+  @override
+  String get close => 'Закрыть';
 }

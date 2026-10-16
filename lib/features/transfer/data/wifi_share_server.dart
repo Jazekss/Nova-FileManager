@@ -121,6 +121,8 @@ class WifiShareServer {
         await _serveFile(req);
       } else if (req.method == 'GET' && req.uri.path.startsWith('/api/thumb')) {
         await _serveThumb(req);
+      } else if (req.method == 'POST' && req.uri.path == '/api/rename') {
+        await _rename(req);
       } else if (req.method == 'POST' && req.uri.path == '/api/unpair') {
         req.response
           ..statusCode = 200
@@ -224,6 +226,37 @@ class WifiShareServer {
       return;
     }
     await _seal(req, bytes);
+  }
+
+  /// POST /api/rename {i, name} — renames a shared file on disk.
+  /// The PC's right panel calls this when the user renames a phone file.
+  Future<void> _rename(HttpRequest req) async {
+    final body = await _sealedBody(req);
+    final data = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+    final i = (data['i'] as num?)?.toInt() ?? -1;
+    final name = (data['name'] as String? ?? '').split('/').last;
+    if (i < 0 || i >= _shares.length || name.isEmpty) {
+      req.response.statusCode = 400;
+      await req.response.close();
+      return;
+    }
+    try {
+      final old = _shares[i];
+      final newPath = '${File(old.path).parent.path}/$name';
+      await File(old.path).rename(newPath);
+      _shares = [
+        for (var j = 0; j < _shares.length; j++)
+          j == i
+              ? SharedFile(path: newPath, downloadName: name, size: old.size)
+              : _shares[j],
+      ];
+      await _seal(req, utf8.encode('{"ok":true}'));
+    } catch (e) {
+      req.response
+        ..statusCode = 500
+        ..write('$e');
+      await req.response.close();
+    }
   }
 
   /// Minimal multipart/form-data parser: splits the body on the boundary,

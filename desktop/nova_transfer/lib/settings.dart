@@ -8,6 +8,8 @@ class DesktopSettings extends ChangeNotifier {
   static const _keyShares = 'sharedFolders';
   static const _keyPairToken = 'pairToken';
   static const _keyThumbs = 'shareThumbs';
+  static const _keyPaneWidth = 'paneWidth';
+  static const _keyViewMode = 'viewMode';
 
   ThemeMode themeMode = ThemeMode.system;
   String? languageCode;
@@ -16,6 +18,12 @@ class DesktopSettings extends ChangeNotifier {
   /// Fetch thumbnails for phone-shared files — off by default since it
   /// makes list loading slower.
   bool showThumbs = false;
+
+  /// Width of the left "PC folders" pane — persisted between launches.
+  double paneWidth = 300;
+
+  /// Phone-pane view mode: list / small / large.
+  String viewMode = 'small';
 
   /// Persistent pairing token — keeps the QR/pairing link stable across
   /// restarts so a paired phone reconnects without rescanning.
@@ -32,7 +40,23 @@ class DesktopSettings extends ChangeNotifier {
     sharedFolders = p.getStringList(_keyShares) ?? [];
     pairToken = p.getString(_keyPairToken);
     showThumbs = p.getBool(_keyThumbs) ?? false;
+    paneWidth = p.getDouble(_keyPaneWidth) ?? 300;
+    viewMode = p.getString(_keyViewMode) ?? 'small';
     notifyListeners();
+  }
+
+  Future<void> setPaneWidth(double w) async {
+    paneWidth = w;
+    notifyListeners();
+    final p = await SharedPreferences.getInstance();
+    await p.setDouble(_keyPaneWidth, w);
+  }
+
+  Future<void> setViewMode(String m) async {
+    viewMode = m;
+    notifyListeners();
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyViewMode, m);
   }
 
   Future<void> setShowThumbs(bool v) async {

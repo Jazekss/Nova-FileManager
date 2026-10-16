@@ -138,6 +138,12 @@ class _DesktopHomeState extends State<DesktopHome> {
   String? _phoneError;
   Timer? _poll;
 
+  /// Left pane width — persisted via DesktopSettings.paneWidth.
+  late double _paneW = context.read<DesktopSettings>().paneWidth;
+
+  /// Index of the phone file whose ⋮ menu is open (gets a soft outline).
+  int? _menuIndex;
+
   @override
   void initState() {
     super.initState();
@@ -175,20 +181,21 @@ class _DesktopHomeState extends State<DesktopHome> {
   /// phone are HMAC-signed and answers are AES-GCM sealed.
   (String base, String key) get _phoneParts {
     final u = Uri.parse(_phoneUrl!);
-    return (
-      'http://${u.host}:${u.port}',
-      u.queryParameters['k'] ?? '',
-    );
+    return ('http://${u.host}:${u.port}', u.queryParameters['k'] ?? '');
   }
 
   /// Signed GET against the phone share server → decrypted bytes.
   /// Returns null for 204 (no thumbnail).
   Future<Uint8List?> _phoneGet(String path) async {
     final (base, key) = _phoneParts;
+    // Sign the path WITHOUT the query string — the server verifies
+    // req.uri.path only.
+    final signPath = path.split('?').first;
     final ts = LanCrypto.now();
-    final sig = LanCrypto.sign(key, 'GET', path, ts);
+    final sig = LanCrypto.sign(key, 'GET', signPath, ts);
+    final sep = path.contains('?') ? '&' : '?';
     final res = await http
-        .get(Uri.parse('$base$path?ts=$ts&sig=$sig'))
+        .get(Uri.parse('$base$path${sep}ts=$ts&sig=$sig'))
         .timeout(const Duration(seconds: 8));
     if (res.statusCode == 204) return null;
     if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
@@ -203,10 +210,7 @@ class _DesktopHomeState extends State<DesktopHome> {
     final sig = LanCrypto.sign(key, 'POST', path, ts);
     final packed = await LanCrypto.seal(key, utf8.encode(jsonEncode(body)));
     await http
-        .post(
-          Uri.parse('$base$path?ts=$ts&sig=$sig'),
-          body: packed,
-        )
+        .post(Uri.parse('$base$path?ts=$ts&sig=$sig'), body: packed)
         .timeout(const Duration(seconds: 5));
   }
 
@@ -270,6 +274,135 @@ class _DesktopHomeState extends State<DesktopHome> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
+  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+
+  static String _ext(_RemoteEntry f) =>
+      f.name.contains('.') ? f.name.split('.').last.toLowerCase() : '';
+
+  /// In-app lightbox for phone images — bytes stay in memory.
+  /// Videos are written to %TEMP% and opened in the default player.
+  Future<void> _previewPhoneFile(_RemoteEntry f) async {
+    final ext = _ext(f);
+    void onDl() => _downloadPhoneFile(f);
+    if (_imgExts.contains(ext)) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => Dialog(
+          backgroundColor: Colors.black,
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              Center(
+                child: FutureBuilder<Uint8List?>(
+                  future: _phoneGet('/f/${f.index}'),
+                  builder: (context, snap) =>
+                      snap.connectionState != ConnectionState.done
+                      ? const CircularProgressIndicator()
+                      : snap.data == null
+                      ? const Icon(
+                          Icons.broken_image,
+                          color: Colors.white54,
+                          size: 64,
+                        )
+                      : GestureDetector(
+                          // Right-click downloads the image.
+                          onSecondaryTap: () {
+                            Navigator.pop(context);
+                            onDl();
+                          },
+                          child: InteractiveViewer(
+                            maxScale: 8,
+                            child: Image.memory(snap.data!),
+                          ),
+                        ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  tooltip: tr(context).back,
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: tr(context).download,
+                      icon: const Icon(Icons.download, color: Colors.white),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onDl();
+                      },
+                    ),
+                    IconButton(
+                      tooltip: tr(context).close,
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+    if (_videoExts.contains(ext)) {
+      try {
+        final bytes = await _phoneGet('/f/${f.index}');
+        if (bytes == null) throw 'fetch';
+        final tmp = Directory.systemTemp.createTempSync('nova_preview');
+        final file = File('${tmp.path}\\${f.name}');
+        await file.writeAsBytes(bytes);
+        // Open with the system's default video player.
+        await Process.start(file.path, [], runInShell: true);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('$e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _renamePhoneFile(_RemoteEntry f) async {
+    final controller = TextEditingController(text: f.name);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(tr(context).rename),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty || newName == f.name) return;
+    try {
+      await _phonePost('/api/rename', {'i': f.index, 'name': newName});
+      _refreshPhoneList();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 
@@ -417,8 +550,7 @@ class _DesktopHomeState extends State<DesktopHome> {
                         type: FileType.custom,
                         allowedExtensions: ['apk'],
                       );
-                      final path =
-                          res.isEmpty ? null : res.first.path;
+                      final path = res.isEmpty ? null : res.first.path;
                       if (path != null) {
                         _server.sharedApk = path;
                         setD(() => picked = path);
@@ -467,6 +599,31 @@ class _DesktopHomeState extends State<DesktopHome> {
           ),
         );
       },
+    );
+  }
+
+  /// Click on the green "Connected" button — confirm disconnect; the
+  /// phone gets /api/unpair so it drops its side too.
+  void _confirmDisconnect() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(tr(context).disconnect),
+        content: Text('$_phoneUrl'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(tr(context).cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _disconnect();
+            },
+            child: Text(tr(context).disconnect),
+          ),
+        ],
+      ),
     );
   }
 
@@ -589,18 +746,23 @@ class _DesktopHomeState extends State<DesktopHome> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            child: FilledButton.tonalIcon(
-              icon: Icon(
-                _phoneUrl != null ? Icons.link : Icons.qr_code_2,
-                color: _phoneUrl != null ? Colors.green : null,
-              ),
-              label: Text(
-                _phoneUrl != null
-                    ? tr(context).phoneConnected
-                    : tr(context).connection,
-              ),
-              onPressed: _showConnectionDialog,
-            ),
+            child: _phoneUrl != null
+                // Green "Connected" button — click asks to disconnect,
+                // which also unpairs the phone side.
+                ? FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.smartphone),
+                    label: Text(tr(context).phoneConnected),
+                    onPressed: _confirmDisconnect,
+                  )
+                : FilledButton.tonalIcon(
+                    icon: const Icon(Icons.qr_code_2),
+                    label: Text(tr(context).connection),
+                    onPressed: _showConnectionDialog,
+                  ),
           ),
           const SizedBox(width: 4),
           PopupMenuButton<String>(
@@ -643,21 +805,44 @@ class _DesktopHomeState extends State<DesktopHome> {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
+          SizedBox(
+            width: _paneW,
             child: _PcPanel(
               folders: settings.sharedFolders,
               onAdd: _addFolder,
               onRemove: _removeFolder,
             ),
           ),
-          const VerticalDivider(width: 1),
+          // Draggable divider — width persists via DesktopSettings.
+          MouseRegion(
+            cursor: SystemMouseCursors.resizeColumn,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanUpdate: (d) => setState(
+                () => _paneW = (_paneW + d.delta.dx).clamp(180.0, 700.0),
+              ),
+              onPanEnd: (_) =>
+                  context.read<DesktopSettings>().setPaneWidth(_paneW),
+              child: Container(
+                width: 9,
+                color: Theme.of(context).colorScheme.outlineVariant
+                    .withValues(alpha: 0.4),
+              ),
+            ),
+          ),
           Expanded(
             child: _PhonePanel(
               connected: _phoneUrl != null,
               files: _phoneFiles,
               error: _phoneError,
               thumbs: settings.showThumbs,
+              viewMode: settings.viewMode,
+              menuIndex: _menuIndex,
               fetchThumb: _phoneThumb,
+              onViewMode: (m) => context.read<DesktopSettings>().setViewMode(m),
+              onMenuOpen: (i) => setState(() => _menuIndex = i),
+              onPreview: _previewPhoneFile,
+              onRename: _renamePhoneFile,
               onRefresh: _refreshPhoneList,
               onDownload: _downloadPhoneFile,
               onDisconnect: _disconnect,
@@ -711,10 +896,18 @@ class _PcPanel extends StatelessWidget {
                   itemCount: folders.length,
                   itemBuilder: (context, i) {
                     final f = folders[i];
+                    final name = f
+                        .split(Platform.pathSeparator)
+                        .lastWhere((s) => s.isNotEmpty, orElse: () => f);
                     return ListTile(
                       dense: true,
                       leading: const Icon(Icons.folder_shared_outlined),
-                      title: Text(f, overflow: TextOverflow.ellipsis),
+                      title: Text(name, overflow: TextOverflow.ellipsis),
+                      subtitle: Text(
+                        f,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.remove_circle_outline),
                         tooltip: tr(context).remove,
@@ -730,13 +923,21 @@ class _PcPanel extends StatelessWidget {
 }
 
 /// Right panel: files the phone shared while paired.
+/// Right panel: files the phone shared while paired — Explorer-style
+/// adaptive layout: list, small or large icon grid depending on width.
 class _PhonePanel extends StatelessWidget {
   const _PhonePanel({
     required this.connected,
     required this.files,
     required this.error,
     required this.thumbs,
+    required this.viewMode,
+    required this.menuIndex,
     required this.fetchThumb,
+    required this.onViewMode,
+    required this.onMenuOpen,
+    required this.onPreview,
+    required this.onRename,
     required this.onRefresh,
     required this.onDownload,
     required this.onDisconnect,
@@ -746,10 +947,102 @@ class _PhonePanel extends StatelessWidget {
   final List<_RemoteEntry> files;
   final String? error;
   final bool thumbs;
+  final String viewMode;
+  final int? menuIndex;
   final Future<Uint8List?> Function(int index) fetchThumb;
+  final void Function(String) onViewMode;
+  final void Function(int?) onMenuOpen;
+  final void Function(_RemoteEntry) onPreview;
+  final void Function(_RemoteEntry) onRename;
   final VoidCallback onRefresh;
   final void Function(_RemoteEntry) onDownload;
   final VoidCallback onDisconnect;
+
+  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
+  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+
+  static bool _previewable(_RemoteEntry f) {
+    final ext = f.name.contains('.')
+        ? f.name.split('.').last.toLowerCase()
+        : '';
+    return _imgExts.contains(ext) || _videoExts.contains(ext);
+  }
+
+  Widget _thumbOrIcon(_RemoteEntry f, double size) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: thumbs
+          ? FutureBuilder<Uint8List?>(
+              future: fetchThumb(f.index),
+              builder: (context, snap) {
+                final b = snap.data;
+                if (b == null) {
+                  return Icon(Icons.insert_drive_file_outlined, size: size);
+                }
+                return Image.memory(
+                  b,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                );
+              },
+            )
+          : Icon(Icons.insert_drive_file_outlined, size: size),
+    );
+  }
+
+  Widget _menu(BuildContext context, _RemoteEntry f, int i) {
+    return PopupMenuButton<String>(
+      tooltip: '',
+      icon: const Icon(Icons.more_vert, size: 18),
+      onOpened: () => onMenuOpen(i),
+      onCanceled: () => onMenuOpen(null),
+      onSelected: (v) {
+        onMenuOpen(null);
+        if (v == 'preview') onPreview(f);
+        if (v == 'download') onDownload(f);
+        if (v == 'rename') onRename(f);
+      },
+      itemBuilder: (context) => [
+        if (_previewable(f))
+          PopupMenuItem(
+            value: 'preview',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.visibility_outlined),
+              title: Text(tr(context).view),
+            ),
+          ),
+        PopupMenuItem(
+          value: 'download',
+          child: ListTile(
+            dense: true,
+            leading: const Icon(Icons.download),
+            title: Text(tr(context).download),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'rename',
+          child: ListTile(
+            dense: true,
+            leading: const Icon(Icons.drive_file_rename_outline),
+            title: Text(tr(context).rename),
+          ),
+        ),
+      ],
+    );
+  }
+
+  BoxDecoration _hl(BuildContext context, _RemoteEntry f) =>
+      menuIndex == f.index
+      ? BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        )
+      : const BoxDecoration();
 
   @override
   Widget build(BuildContext context) {
@@ -765,6 +1058,26 @@ class _PhonePanel extends StatelessWidget {
                   tr(context).phoneFiles,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+              ),
+              SegmentedButton<String>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                segments: const [
+                  ButtonSegment(
+                    value: 'list',
+                    icon: Icon(Icons.view_list, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'small',
+                    icon: Icon(Icons.grid_view, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: 'large',
+                    icon: Icon(Icons.view_comfy_alt, size: 16),
+                  ),
+                ],
+                selected: {viewMode},
+                onSelectionChanged: (s) => onViewMode(s.first),
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
@@ -789,46 +1102,80 @@ class _PhonePanel extends StatelessWidget {
               ? Center(child: Text(tr(context).emptyList))
               : RefreshIndicator(
                   onRefresh: () async => onRefresh(),
-                  child: ListView.builder(
-                    itemCount: files.length,
-                    itemBuilder: (context, i) {
-                      final f = files[i];
-                      return ListTile(
-                        dense: true,
-                        leading: thumbs
-                            ? FutureBuilder<Uint8List?>(
-                                future: fetchThumb(f.index),
-                                builder: (context, snap) {
-                                  final b = snap.data;
-                                  return ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: b != null
-                                        ? Image.memory(
-                                            b,
-                                            width: 36,
-                                            height: 36,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : const Icon(Icons.smartphone),
-                                  );
-                                },
-                              )
-                            : const Icon(Icons.smartphone),
-                        title: Text(f.name, overflow: TextOverflow.ellipsis),
-                        subtitle: Text(
-                          '${(f.size / 1024).toStringAsFixed(1)} KB',
+                  child: viewMode == 'list'
+                      ? ListView.builder(
+                          itemCount: files.length,
+                          itemBuilder: (context, i) =>
+                              _listTile(context, files[i], i),
+                        )
+                      : LayoutBuilder(
+                          builder: (context, c) => GridView.builder(
+                            padding: const EdgeInsets.all(8),
+                            gridDelegate:
+                                SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: viewMode == 'large'
+                                      ? 200
+                                      : 110,
+                                  childAspectRatio: 0.75,
+                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 8,
+                                ),
+                            itemCount: files.length,
+                            itemBuilder: (context, i) =>
+                                _gridCell(context, files[i], i),
+                          ),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.download),
-                          tooltip: tr(context).download,
-                          onPressed: () => onDownload(f),
-                        ),
-                      );
-                    },
-                  ),
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _listTile(BuildContext context, _RemoteEntry f, int i) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: _hl(context, f),
+      child: ListTile(
+        dense: true,
+        leading: _thumbOrIcon(f, 36),
+        title: Text(f.name, overflow: TextOverflow.ellipsis),
+        subtitle: Text('${(f.size / 1024).toStringAsFixed(1)} KB'),
+        onTap: _previewable(f) ? () => onPreview(f) : () => onDownload(f),
+        trailing: _menu(context, f, i),
+      ),
+    );
+  }
+
+  Widget _gridCell(BuildContext context, _RemoteEntry f, int i) {
+    final iconSize = viewMode == 'large' ? 140.0 : 60.0;
+    return Container(
+      decoration: _hl(context, f),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: _previewable(f) ? () => onPreview(f) : () => onDownload(f),
+        child: Column(
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  Center(child: _thumbOrIcon(f, iconSize)),
+                  Positioned(right: 0, top: 0, child: _menu(context, f, i)),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                f.name,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

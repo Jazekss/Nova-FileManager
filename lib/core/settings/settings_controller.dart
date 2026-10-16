@@ -22,6 +22,7 @@ class SettingsController extends ChangeNotifier {
   static const _keyHidden = 'showHidden';
   static const _keyLang = 'languageCode';
   static const _keyThumbs = 'shareThumbs';
+  static const _keyPcView = 'pcShareView';
 
   ThemeMode _themeMode = ThemeMode.system;
   SizeUnit _sizeUnit = SizeUnit.auto;
@@ -36,6 +37,10 @@ class SettingsController extends ChangeNotifier {
   /// Fetch image/video/APK thumbnails while browsing a paired PC —
   /// slower list loading, so it's off by default.
   bool get shareThumbs => _shareThumbs;
+
+  /// PC-share view mode: list / medium / large.
+  String get pcShareView => _pcShareView;
+  String _pcShareView = 'list';
   String? get languageCode => _languageCode;
 
   /// Null locale = follow the system language.
@@ -47,6 +52,7 @@ class SettingsController extends ChangeNotifier {
     _sizeUnit = SizeUnit.values[prefs.getInt(_keyUnit) ?? 0];
     _showHidden = prefs.getBool(_keyHidden) ?? false;
     _shareThumbs = prefs.getBool(_keyThumbs) ?? false;
+    _pcShareView = prefs.getString(_keyPcView) ?? 'list';
     _languageCode = prefs.getString(_keyLang);
     notifyListeners();
   }
@@ -73,6 +79,12 @@ class SettingsController extends ChangeNotifier {
     _shareThumbs = value;
     notifyListeners();
     (await SharedPreferences.getInstance()).setBool(_keyThumbs, value);
+  }
+
+  Future<void> setPcShareView(String mode) async {
+    _pcShareView = mode;
+    notifyListeners();
+    (await SharedPreferences.getInstance()).setString(_keyPcView, mode);
   }
 
   Future<void> setLanguage(String? code) async {

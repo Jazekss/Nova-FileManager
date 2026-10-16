@@ -35,5 +35,10 @@
   "apkQrHint": "Pick an APK first, then scan the QR with your phone camera — the file downloads to Download/.",
   "apkScanNow": "Scan with the phone camera to download this APK.",
   "shareThumbs": "Show thumbnails",
-  "shareThumbsNote": "Image/video/APK previews — slower list loading."
+  "shareThumbsNote": "Image/video/APK previews — slower list loading.",
+  "view": "View",
+  "rename": "Rename",
+  "cancel": "Cancel",
+  "back": "Back",
+  "close": "Close"
 }

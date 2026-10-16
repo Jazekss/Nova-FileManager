@@ -120,4 +120,19 @@ class AppLocalizationsNb extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Bilde-/video-/APK-forhåndsvisninger — tregere innlasting.';
+
+  @override
+  String get view => 'Vis';
+
+  @override
+  String get rename => 'Gi nytt navn';
+
+  @override
+  String get cancel => 'Avbryt';
+
+  @override
+  String get back => 'Tilbake';
+
+  @override
+  String get close => 'Lukk';
 }

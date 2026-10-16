@@ -119,4 +119,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get shareThumbsNote =>
       'Bild-/Video-/APK-Vorschauen — langsamere Listenladung.';
+
+  @override
+  String get view => 'Ansehen';
+
+  @override
+  String get rename => 'Umbenennen';
+
+  @override
+  String get cancel => 'Abbrechen';
+
+  @override
+  String get back => 'Zurück';
+
+  @override
+  String get close => 'Schließen';
 }

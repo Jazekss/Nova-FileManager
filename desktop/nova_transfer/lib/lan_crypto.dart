@@ -22,10 +22,10 @@ class LanCrypto {
   static cg.SecretKey _key(String token) =>
       cg.SecretKey(sha256.convert(utf8.encode(token)).bytes);
 
-  static String sign(String token, String method, String path, int ts) =>
-      Hmac(sha256, utf8.encode(token))
-          .convert(utf8.encode('${method.toUpperCase()}|$path|$ts'))
-          .toString();
+  static String sign(String token, String method, String path, int ts) => Hmac(
+    sha256,
+    utf8.encode(token),
+  ).convert(utf8.encode('${method.toUpperCase()}|$path|$ts')).toString();
 
   /// Checks signature + timestamp window. [path] is the request path only
   /// (no query string).
@@ -47,9 +47,11 @@ class LanCrypto {
   /// Encrypts bytes → nonce||ct||tag.
   static Future<Uint8List> seal(String token, List<int> plain) async {
     final box = await _aes.encrypt(plain, secretKey: _key(token));
-    return Uint8List.fromList(
-      [...box.nonce, ...box.cipherText, ...box.mac.bytes],
-    );
+    return Uint8List.fromList([
+      ...box.nonce,
+      ...box.cipherText,
+      ...box.mac.bytes,
+    ]);
   }
 
   /// Decrypts nonce||ct||tag, null on bad key/tampered data.
