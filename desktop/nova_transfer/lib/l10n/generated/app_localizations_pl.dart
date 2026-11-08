@@ -144,4 +144,78 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Zaznacz i usuń pliki w udostępnionych folderach telefonu';
+
+  @override
+  String get sort => 'Sortuj';
+
+  @override
+  String get sortName => 'Nazwa';
+
+  @override
+  String get sortSize => 'Rozmiar';
+
+  @override
+  String get sortDate => 'Data';
+
+  @override
+  String get sortAsc => 'Rosnąco';
+
+  @override
+  String get sortDesc => 'Malejąco';
+
+  @override
+  String get statusReconnecting => 'Ponowne łączenie…';
+
+  @override
+  String get statusWaiting => 'Oczekiwanie na telefon';
+
+  @override
+  String get connectTitle => 'Połącz telefon';
+
+  @override
+  String get connectStep1 => 'Na telefonie otwórz Nova → Udostępnianie PC';
+
+  @override
+  String get connectStep2 => 'Stuknij „Skanuj QR” i skieruj aparat na ten kod';
+
+  @override
+  String get connectAuto =>
+      'Już sparowano? Po prostu otwórz Nova na telefonie — połączy się sam.';
+
+  @override
+  String get noNetwork =>
+      'Nie znaleziono połączenia sieciowego na tym komputerze.';
+
+  @override
+  String get firewallOk => 'Zapora Windows zezwala na Nova Transfer';
+
+  @override
+  String get firewallBlocked => 'Zapora Windows blokuje połączenie telefonu.';
+
+  @override
+  String get firewallUnknown =>
+      'Jeśli telefon nie może się połączyć, zezwól na Nova Transfer w Zaporze Windows.';
+
+  @override
+  String get firewallFix => 'Zezwól';
+
+  @override
+  String get sameWifiHint =>
+      'Telefon i komputer muszą być w tej samej sieci. Sieć Wi-Fi dla gości często blokuje widoczność urządzeń.';
+
+  @override
+  String get phoneShareHint =>
+      'Nic jeszcze nie udostępniono. Na telefonie: Udostępnianie PC → ⋮ → Udostępnij folder telefonu.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefon nie odpowiada — trwa automatyczne ponowne łączenie…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Otwórz Nova na telefonie w tej samej sieci Wi-Fi — połączy się w ciągu kilku sekund.';
+
+  @override
+  String get disconnectNote =>
+      'Telefon zapomni ten komputer i trzeba będzie ponownie zeskanować kod QR.';
 }

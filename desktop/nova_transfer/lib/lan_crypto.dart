@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -6,11 +7,13 @@ import 'package:cryptography/cryptography.dart' as cg;
 
 /// Shared-secret request signing + AES-256-GCM body sealing for the
 /// Nova LAN link. The pairing token is shared out-of-band (QR) and never
-/// travels the wire — requests carry ts+sig instead:
+/// travels the wire — requests carry ts+nonce+sig instead:
 ///
-///   sig = hex(HMAC-SHA256(token, "METHOD|path|ts"))
+///   sig = hex(HMAC-SHA256(token, "METHOD|path|query|ts"))
 ///
-/// Bodies are sealed as nonce(12) || ciphertext || tag(16).
+/// `query` is the sorted, percent-encoded parameter list (excluding
+/// ts/sig themselves), so a proxy can't swap arguments without breaking
+/// the signature. Bodies are sealed as nonce(12) || ciphertext || tag(16).
 class LanCrypto {
   LanCrypto._();
 
@@ -18,31 +21,96 @@ class LanCrypto {
   static const windowSec = 600;
 
   static final _aes = cg.AesGcm.with256bits();
+  static final _rng = Random.secure();
 
   static cg.SecretKey _key(String token) =>
       cg.SecretKey(sha256.convert(utf8.encode(token)).bytes);
 
-  static String sign(String token, String method, String path, int ts) => Hmac(
+  /// Random per-request nonce — makes every signature unique even for
+  /// repeated identical requests inside the same second.
+  static String nonce() => List.generate(
+    8,
+    (_) => _rng.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
+
+  /// Sorted, percent-encoded "k=v&k=v" — ts/sig are excluded since they
+  /// are added after signing.
+  static String canonicalQuery(Map<String, String> query) {
+    final q = {...query}
+      ..remove('ts')
+      ..remove('sig');
+    final keys = q.keys.toList()..sort();
+    return keys
+        .map(
+          (k) =>
+              '${Uri.encodeQueryComponent(k)}='
+              '${Uri.encodeQueryComponent(q[k]!)}',
+        )
+        .join('&');
+  }
+
+  static String _payload(
+    String method,
+    String path,
+    int ts,
+    Map<String, String> query,
+  ) => '${method.toUpperCase()}|$path|${canonicalQuery(query)}|$ts';
+
+  static String sign(
+    String token,
+    String method,
+    String path,
+    int ts, [
+    Map<String, String> query = const {},
+  ]) => Hmac(
     sha256,
     utf8.encode(token),
-  ).convert(utf8.encode('${method.toUpperCase()}|$path|$ts')).toString();
+  ).convert(utf8.encode(_payload(method, path, ts, query))).toString();
 
   /// Checks signature + timestamp window. [path] is the request path only
-  /// (no query string).
+  /// and [query] the request parameters (ts/sig may be included — they
+  /// are stripped before comparison).
   static bool verify(
     String token,
     String method,
     String path,
     int ts,
-    String sig,
-  ) {
+    String sig, [
+    Map<String, String> query = const {},
+  ]) {
     if (sig.isEmpty) return false;
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if ((now - ts).abs() > windowSec) return false;
-    return sign(token, method, path, ts) == sig;
+    return _constTimeEq(sign(token, method, path, ts, query), sig);
   }
 
   static int now() => DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+  /// UDP port the desktop answers LAN discovery probes on.
+  static const discoveryPort = 48321;
+  static const discoverProbe = 'NOVA_DISCOVER';
+
+  /// Public id of a pairing — lets the phone recognise ITS desktop in
+  /// discovery replies without the token ever leaving either device.
+  static String pairId(String token) => Hmac(
+    sha256,
+    utf8.encode(token),
+  ).convert(utf8.encode('nova-pair-id')).toString().substring(0, 16);
+
+  /// Response header carrying the server clock on 403 — the client uses
+  /// it to correct clock skew instead of treating the PC as unpaired.
+  static const timeHeader = 'x-nova-time';
+
+  /// Constant-time-ish hex comparison — avoids leaking the signature
+  /// prefix through early-exit timing.
+  static bool _constTimeEq(String a, String b) {
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
+    return diff == 0;
+  }
 
   /// Encrypts bytes → nonce||ct||tag.
   static Future<Uint8List> seal(String token, List<int> plain) async {

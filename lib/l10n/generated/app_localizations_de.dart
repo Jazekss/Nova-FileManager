@@ -238,6 +238,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sharedToPc => 'An PC freigegeben';
 
   @override
+  String get sharedFromPc => 'Vom PC freigegeben';
+
+  @override
   String get pairWithPc => 'Mit dem Computer koppeln';
 
   @override
@@ -576,4 +579,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Wiedergabe nicht möglich: $error';
   }
+
+  @override
+  String get pcReconnecting =>
+      'PC nicht erreichbar – Verbindung wird automatisch wiederhergestellt…';
+
+  @override
+  String get pcRejected =>
+      'Der PC erkennt dieses Telefon nicht mehr. Scanne den QR-Code erneut.';
+
+  @override
+  String get pcUnreachableHint =>
+      'PC nicht erreichbar. Prüfe, ob Nova Transfer geöffnet ist, beide Geräte im selben WLAN sind und die Windows-Firewall Nova Transfer erlaubt.';
 }

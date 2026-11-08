@@ -84,6 +84,7 @@
   "driveTrashQ": "In den Drive-Papierkorb verschieben?",
   "comingSoon": "Demnächst",
   "sharedToPc": "An PC freigegeben",
+  "sharedFromPc": "Vom PC freigegeben",
   "pairWithPc": "Mit dem Computer koppeln",
   "pcPairHint": "Öffne Nova File Manager Desktop auf dem PC und zeige den Kopplungs-QR im Verbindungsmenü.",
   "invalidPairLink": "Ungültiger Kopplungslink",
@@ -193,5 +194,9 @@
   "extractedTo": "Entpackt nach {path}",
   "extractFailed": "Entpacken fehlgeschlagen: {error}",
 
-  "cannotPlay": "Wiedergabe nicht möglich: {error}"
+  "cannotPlay": "Wiedergabe nicht möglich: {error}",
+
+  "pcReconnecting": "PC nicht erreichbar – Verbindung wird automatisch wiederhergestellt…",
+  "pcRejected": "Der PC erkennt dieses Telefon nicht mehr. Scanne den QR-Code erneut.",
+  "pcUnreachableHint": "PC nicht erreichbar. Prüfe, ob Nova Transfer geöffnet ist, beide Geräte im selben WLAN sind und die Windows-Firewall Nova Transfer erlaubt."
 }

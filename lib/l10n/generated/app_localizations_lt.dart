@@ -236,6 +236,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get sharedToPc => 'Bendrinta į PC';
 
   @override
+  String get sharedFromPc => 'Bendrinta iš PC';
+
+  @override
   String get pairWithPc => 'Susieti su kompiuteriu';
 
   @override
@@ -575,4 +578,16 @@ class AppLocalizationsLt extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Nepavyksta paleisti: $error';
   }
+
+  @override
+  String get pcReconnecting =>
+      'Kompiuteris nepasiekiamas — jungiamasi automatiškai…';
+
+  @override
+  String get pcRejected =>
+      'Kompiuteris nebeatpažįsta šio telefono. Nuskaitykite QR kodą dar kartą.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Nepavyksta pasiekti kompiuterio. Įsitikinkite, kad Nova Transfer atidaryta, abu įrenginiai tame pačiame Wi-Fi, o Windows užkarda leidžia Nova Transfer.';
 }

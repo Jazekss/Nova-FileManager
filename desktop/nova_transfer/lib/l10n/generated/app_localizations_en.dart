@@ -144,4 +144,78 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Select and delete files in the phone\'s shared folders';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get sortName => 'Name';
+
+  @override
+  String get sortSize => 'Size';
+
+  @override
+  String get sortDate => 'Date';
+
+  @override
+  String get sortAsc => 'Ascending';
+
+  @override
+  String get sortDesc => 'Descending';
+
+  @override
+  String get statusReconnecting => 'Reconnecting…';
+
+  @override
+  String get statusWaiting => 'Waiting for phone';
+
+  @override
+  String get connectTitle => 'Connect your phone';
+
+  @override
+  String get connectStep1 => 'On the phone open Nova → PC share';
+
+  @override
+  String get connectStep2 => 'Tap “Scan QR” and point the camera at this code';
+
+  @override
+  String get connectAuto =>
+      'Already paired? Just open Nova on the phone — it reconnects by itself.';
+
+  @override
+  String get noNetwork => 'No network connection found on this PC.';
+
+  @override
+  String get firewallOk => 'Windows Firewall allows Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Windows Firewall is blocking the phone from connecting.';
+
+  @override
+  String get firewallUnknown =>
+      'If the phone can\'t connect, allow Nova Transfer in Windows Firewall.';
+
+  @override
+  String get firewallFix => 'Allow';
+
+  @override
+  String get sameWifiHint =>
+      'Phone and PC must be on the same network. Guest Wi-Fi often stops devices from seeing each other.';
+
+  @override
+  String get phoneShareHint =>
+      'Nothing shared yet. On the phone: PC share → ⋮ → Share a phone folder.';
+
+  @override
+  String get phoneReconnecting =>
+      'Phone isn\'t answering — reconnecting automatically…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Open Nova on the phone and keep it on the same Wi-Fi — it will reconnect within a few seconds.';
+
+  @override
+  String get disconnectNote =>
+      'The phone will forget this PC and must scan the QR code again.';
 }

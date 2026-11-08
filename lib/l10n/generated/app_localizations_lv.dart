@@ -236,6 +236,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get sharedToPc => 'Koplietots uz PC';
 
   @override
+  String get sharedFromPc => 'Koplietots no datora';
+
+  @override
   String get pairWithPc => 'Savieno ar datoru';
 
   @override
@@ -573,4 +576,16 @@ class AppLocalizationsLv extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Nevar atskaņot: $error';
   }
+
+  @override
+  String get pcReconnecting =>
+      'Dators nav sasniedzams — savienojums tiek atjaunots automātiski…';
+
+  @override
+  String get pcRejected =>
+      'Dators vairs neatpazīst šo telefonu. Noskenē QR kodu vēlreiz.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Nevar sasniegt datoru. Pārliecinies, ka Nova Transfer ir atvērts, abas ierīces ir vienā Wi-Fi un Windows ugunsmūris atļauj Nova Transfer.';
 }

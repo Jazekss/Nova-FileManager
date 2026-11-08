@@ -375,6 +375,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select and delete files in the phone\'s shared folders'**
   String get managePhoneNote;
+
+  /// No description provided for @sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// No description provided for @sortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sortName;
+
+  /// No description provided for @sortSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get sortSize;
+
+  /// No description provided for @sortDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sortDate;
+
+  /// No description provided for @sortAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascending'**
+  String get sortAsc;
+
+  /// No description provided for @sortDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Descending'**
+  String get sortDesc;
+
+  /// No description provided for @statusReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting…'**
+  String get statusReconnecting;
+
+  /// No description provided for @statusWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for phone'**
+  String get statusWaiting;
+
+  /// No description provided for @connectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your phone'**
+  String get connectTitle;
+
+  /// No description provided for @connectStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'On the phone open Nova → PC share'**
+  String get connectStep1;
+
+  /// No description provided for @connectStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Scan QR” and point the camera at this code'**
+  String get connectStep2;
+
+  /// No description provided for @connectAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Already paired? Just open Nova on the phone — it reconnects by itself.'**
+  String get connectAuto;
+
+  /// No description provided for @noNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No network connection found on this PC.'**
+  String get noNetwork;
+
+  /// No description provided for @firewallOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows Firewall allows Nova Transfer'**
+  String get firewallOk;
+
+  /// No description provided for @firewallBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows Firewall is blocking the phone from connecting.'**
+  String get firewallBlocked;
+
+  /// No description provided for @firewallUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'If the phone can\'t connect, allow Nova Transfer in Windows Firewall.'**
+  String get firewallUnknown;
+
+  /// No description provided for @firewallFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get firewallFix;
+
+  /// No description provided for @sameWifiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone and PC must be on the same network. Guest Wi-Fi often stops devices from seeing each other.'**
+  String get sameWifiHint;
+
+  /// No description provided for @phoneShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing shared yet. On the phone: PC share → ⋮ → Share a phone folder.'**
+  String get phoneShareHint;
+
+  /// No description provided for @phoneReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone isn\'t answering — reconnecting automatically…'**
+  String get phoneReconnecting;
+
+  /// No description provided for @phoneReconnectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Nova on the phone and keep it on the same Wi-Fi — it will reconnect within a few seconds.'**
+  String get phoneReconnectHint;
+
+  /// No description provided for @disconnectNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone will forget this PC and must scan the QR code again.'**
+  String get disconnectNote;
 }
 
 class _AppLocalizationsDelegate

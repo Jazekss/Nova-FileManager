@@ -538,6 +538,12 @@ abstract class AppLocalizations {
   /// **'Shared to PC'**
   String get sharedToPc;
 
+  /// No description provided for @sharedFromPc.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared from PC'**
+  String get sharedFromPc;
+
   /// No description provided for @pairWithPc.
   ///
   /// In en, this message translates to:
@@ -1161,6 +1167,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot play: {error}'**
   String cannotPlay(Object error);
+
+  /// No description provided for @pcReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'PC not reachable — reconnecting automatically…'**
+  String get pcReconnecting;
+
+  /// No description provided for @pcRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The PC no longer recognises this phone. Scan the QR code again.'**
+  String get pcRejected;
+
+  /// No description provided for @pcUnreachableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the PC. Make sure Nova Transfer is open, both devices are on the same Wi-Fi, and Windows Firewall allows Nova Transfer.'**
+  String get pcUnreachableHint;
 }
 
 class _AppLocalizationsDelegate

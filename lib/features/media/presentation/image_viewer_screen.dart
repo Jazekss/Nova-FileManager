@@ -26,6 +26,25 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
   late final PageController _pageCtrl;
   late int _index;
 
+  /// While the current image is zoomed in, horizontal swipes pan the
+  /// picture instead of flipping pages.
+  bool _zoomed = false;
+
+  /// Per-page transform controllers — zoom state is tracked per image.
+  final Map<int, TransformationController> _ctrls = {};
+
+  TransformationController _controllerFor(int i) {
+    return _ctrls.putIfAbsent(i, () {
+      final c = TransformationController();
+      c.addListener(() {
+        if (i != _index) return;
+        final z = c.value.getMaxScaleOnAxis() > 1.001;
+        if (z != _zoomed) setState(() => _zoomed = z);
+      });
+      return c;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +54,9 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
   @override
   void dispose() {
+    for (final c in _ctrls.values) {
+      c.dispose();
+    }
     _pageCtrl.dispose();
     super.dispose();
   }
@@ -71,9 +93,14 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       ),
       body: PageView.builder(
         controller: _pageCtrl,
+        physics: _zoomed ? const NeverScrollableScrollPhysics() : null,
         itemCount: widget.images.length,
-        onPageChanged: (i) => setState(() => _index = i),
+        onPageChanged: (i) => setState(() {
+          _index = i;
+          _zoomed = false;
+        }),
         itemBuilder: (context, i) => InteractiveViewer(
+          transformationController: _controllerFor(i),
           child: GestureDetector(
             // Long-press opens the same context menu as the "⋮" button.
             onLongPress: widget.onActions == null

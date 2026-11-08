@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 
 import '../../../core/crypto/lan_crypto.dart';
+import '../../pc_share/data/lan_discovery.dart';
 
 /// A file (or zipped folder) offered for download over the HTTP share page.
 class SharedFile {
@@ -58,15 +60,11 @@ class WifiShareServer {
   /// endpoint requires a signed request and answers with sealed bytes.
   String get url => _ip == null ? '' : 'http://$_ip:$port?k=$_shareToken';
 
-  /// First non-loopback IPv4 address (wlan0 on Android).
+  /// Best LAN IPv4 (Wi-Fi before mobile data). The PC also swaps in the
+  /// address our requests really come from, so this is only a hint.
   static Future<String?> localIp() async {
-    final ifaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
-    for (final iface in ifaces) {
-      for (final addr in iface.addresses) {
-        if (!addr.isLoopback) return addr.address;
-      }
-    }
-    return null;
+    final ips = await LanDiscovery.localIps();
+    return ips.isEmpty ? null : ips.first;
   }
 
   /// [roots] may be file and/or directory paths — directories become
@@ -99,12 +97,29 @@ class WifiShareServer {
     return false;
   }
 
-  /// Signed-request auth against this share session's token.
+  /// Signed-request auth against this share session's token. The query
+  /// string is part of the signature, and every (unique, nonce-carrying)
+  /// signature is accepted once — replayed packets are rejected.
   bool _auth(HttpRequest req) {
     final q = req.uri.queryParameters;
     final ts = int.tryParse(q['ts'] ?? '') ?? 0;
     final sig = q['sig'] ?? '';
-    return LanCrypto.verify(_shareToken, req.method, req.uri.path, ts, sig);
+    if (!LanCrypto.verify(_shareToken, req.method, req.uri.path, ts, sig, q)) {
+      return false;
+    }
+    return _seen(sig);
+  }
+
+  /// Signatures seen inside the validity window — a replayed request
+  /// carries the identical sig and is refused.
+  final Map<String, int> _seenSigs = {};
+
+  bool _seen(String sig) {
+    final now = LanCrypto.now();
+    _seenSigs.removeWhere((_, t) => (now - t).abs() > LanCrypto.windowSec + 60);
+    if (_seenSigs.containsKey(sig)) return false;
+    _seenSigs[sig] = now;
+    return true;
   }
 
   Future<Uint8List> _sealedBody(HttpRequest req) async {
@@ -132,6 +147,7 @@ class WifiShareServer {
       if (!_auth(req)) {
         req.response
           ..statusCode = 403
+          ..headers.set(LanCrypto.timeHeader, '${LanCrypto.now()}')
           ..write('Forbidden');
         await req.response.close();
         return;
@@ -182,11 +198,19 @@ class WifiShareServer {
 
   Map<String, Object?> _entry(FileSystemEntity e) {
     final isDir = e is Directory;
+    var size = 0;
+    var mtime = 0;
+    try {
+      final s = e.statSync();
+      size = e is File ? s.size : 0;
+      mtime = s.modified.millisecondsSinceEpoch;
+    } catch (_) {}
     return {
       'name': e.path.split('/').last,
       'path': e.path,
       'isDir': isDir,
-      'size': e is File ? e.lengthSync() : 0,
+      'size': size,
+      'mtime': mtime,
     };
   }
 
@@ -244,42 +268,66 @@ class WifiShareServer {
   static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
   static const _apkExts = {'apk', 'aab'};
 
+  /// Thumbnail cache — "path:mtime" → bytes (null = no thumbnail).
+  /// Capped so a long session can't grow unbounded.
+  final Map<String, List<int>?> _thumbCache = {};
+  static const _thumbCacheMax = 400;
+
   /// GET /api/thumb?path=… → JPEG/PNG thumbnail for a shared file:
-  /// images are resized locally, video frames and APK icons come from
-  /// the native channel. 204 when no thumbnail exists.
+  /// images are resized in an isolate (decoding multi-MP photos on the
+  /// UI isolate stalls the whole app), video frames and APK icons come
+  /// from the native channel. 204 when no thumbnail exists.
   Future<void> _serveThumb(HttpRequest req) async {
     final path = req.uri.queryParameters['path'] ?? '';
     final ext = path.toLowerCase().split('.').last;
     List<int>? bytes;
+    var found = false;
     if (_insideRoots(path) && File(path).existsSync()) {
+      var key = path;
       try {
-        if (_imgExts.contains(ext)) {
-          final decoded = img.decodeImage(await File(path).readAsBytes());
-          if (decoded != null) {
-            final thumb = img.copyResize(
-              decoded,
-              width: decoded.width >= decoded.height ? 160 : null,
-              height: decoded.height > decoded.width ? 160 : null,
-            );
-            bytes = img.encodeJpg(thumb, quality: 80);
-          }
-        } else if (_apkExts.contains(ext)) {
-          bytes = await _channel.invokeMethod<List<int>>('apkIcon', {
-            'path': path,
-          });
-        } else if (_videoExts.contains(ext)) {
-          bytes = await _channel.invokeMethod<List<int>>('videoThumb', {
-            'path': path,
-          });
-        }
+        key =
+            '$path:${FileStat.statSync(path).modified.millisecondsSinceEpoch}';
       } catch (_) {}
+      if (_thumbCache.containsKey(key)) {
+        bytes = _thumbCache[key];
+        found = true;
+      } else {
+        try {
+          if (_imgExts.contains(ext)) {
+            bytes = await Isolate.run(() => _makeImageThumb(path));
+          } else if (_apkExts.contains(ext)) {
+            bytes = await _channel.invokeMethod<List<int>>('apkIcon', {
+              'path': path,
+            });
+          } else if (_videoExts.contains(ext)) {
+            bytes = await _channel.invokeMethod<List<int>>('videoThumb', {
+              'path': path,
+            });
+          }
+        } catch (_) {}
+        if (_thumbCache.length >= _thumbCacheMax) _thumbCache.clear();
+        _thumbCache[key] = bytes;
+        found = true;
+      }
     }
-    if (bytes == null) {
+    if (!found || bytes == null) {
       req.response.statusCode = 204;
       await req.response.close();
       return;
     }
     await _seal(req, bytes);
+  }
+
+  /// Decode + resize inside a worker isolate.
+  static List<int>? _makeImageThumb(String path) {
+    final decoded = img.decodeImage(File(path).readAsBytesSync());
+    if (decoded == null) return null;
+    final thumb = img.copyResize(
+      decoded,
+      width: decoded.width >= decoded.height ? 160 : null,
+      height: decoded.height > decoded.width ? 160 : null,
+    );
+    return img.encodeJpg(thumb, quality: 80);
   }
 
   /// POST /api/rename {path, name} — renames a file inside a shared root.

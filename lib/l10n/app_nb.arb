@@ -84,6 +84,7 @@
   "driveTrashQ": "Flytt til Drive-papirkurven?",
   "comingSoon": "Kommer snart",
   "sharedToPc": "Delt til PC",
+  "sharedFromPc": "Delt fra PC",
   "pairWithPc": "Koble til datamaskinen",
   "pcPairHint": "Åpne Nova File Manager Desktop på PC-en og vis sammenkoblings-QR i tilkoblingsmenyen.",
   "invalidPairLink": "Ugyldig koblingslenke",
@@ -193,5 +194,9 @@
   "extractedTo": "Pakket ut til {path}",
   "extractFailed": "Utpakking feilet: {error}",
 
-  "cannotPlay": "Kan ikke spille: {error}"
+  "cannotPlay": "Kan ikke spille: {error}",
+
+  "pcReconnecting": "PC-en svarer ikke — kobler til automatisk…",
+  "pcRejected": "PC-en kjenner ikke lenger igjen telefonen. Skann QR-koden på nytt.",
+  "pcUnreachableHint": "Får ikke kontakt med PC-en. Sjekk at Nova Transfer er åpen, at begge enhetene er på samme Wi-Fi og at Windows-brannmuren tillater Nova Transfer."
 }

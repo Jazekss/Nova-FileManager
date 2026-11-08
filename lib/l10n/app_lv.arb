@@ -84,6 +84,7 @@
   "driveTrashQ": "Pārvietot uz Drive miskasti?",
   "comingSoon": "Drīzumā",
   "sharedToPc": "Koplietots uz PC",
+  "sharedFromPc": "Koplietots no datora",
   "pairWithPc": "Savieno ar datoru",
   "pcPairHint": "Atver Nova File Manager Desktop datorā un savienojuma izvēlnē parādi pārošanas QR.",
   "invalidPairLink": "Nederīga pārošanas saite",
@@ -193,5 +194,9 @@
   "extractedTo": "Izpakots uz {path}",
   "extractFailed": "Izpakošana neizdevās: {error}",
 
-  "cannotPlay": "Nevar atskaņot: {error}"
+  "cannotPlay": "Nevar atskaņot: {error}",
+
+  "pcReconnecting": "Dators nav sasniedzams — savienojums tiek atjaunots automātiski…",
+  "pcRejected": "Dators vairs neatpazīst šo telefonu. Noskenē QR kodu vēlreiz.",
+  "pcUnreachableHint": "Nevar sasniegt datoru. Pārliecinies, ka Nova Transfer ir atvērts, abas ierīces ir vienā Wi-Fi un Windows ugunsmūris atļauj Nova Transfer."
 }

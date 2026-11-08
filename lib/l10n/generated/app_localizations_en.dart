@@ -237,6 +237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedToPc => 'Shared to PC';
 
   @override
+  String get sharedFromPc => 'Shared from PC';
+
+  @override
   String get pairWithPc => 'Pair with your computer';
 
   @override
@@ -575,4 +578,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Cannot play: $error';
   }
+
+  @override
+  String get pcReconnecting => 'PC not reachable — reconnecting automatically…';
+
+  @override
+  String get pcRejected =>
+      'The PC no longer recognises this phone. Scan the QR code again.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Can\'t reach the PC. Make sure Nova Transfer is open, both devices are on the same Wi-Fi, and Windows Firewall allows Nova Transfer.';
 }

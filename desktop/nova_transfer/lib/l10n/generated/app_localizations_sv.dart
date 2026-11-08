@@ -145,4 +145,78 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Markera och radera filer i telefonens delade mappar';
+
+  @override
+  String get sort => 'Sortera';
+
+  @override
+  String get sortName => 'Namn';
+
+  @override
+  String get sortSize => 'Storlek';
+
+  @override
+  String get sortDate => 'Datum';
+
+  @override
+  String get sortAsc => 'Stigande';
+
+  @override
+  String get sortDesc => 'Fallande';
+
+  @override
+  String get statusReconnecting => 'Återansluter…';
+
+  @override
+  String get statusWaiting => 'Väntar på telefon';
+
+  @override
+  String get connectTitle => 'Anslut telefonen';
+
+  @override
+  String get connectStep1 => 'Öppna Nova → PC-delning på telefonen';
+
+  @override
+  String get connectStep2 => 'Tryck på ”Skanna QR” och rikta kameran mot koden';
+
+  @override
+  String get connectAuto =>
+      'Redan parkopplad? Öppna bara Nova på telefonen — den återansluter själv.';
+
+  @override
+  String get noNetwork => 'Ingen nätverksanslutning hittades på datorn.';
+
+  @override
+  String get firewallOk => 'Windows-brandväggen tillåter Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Windows-brandväggen hindrar telefonen från att ansluta.';
+
+  @override
+  String get firewallUnknown =>
+      'Om telefonen inte kan ansluta, tillåt Nova Transfer i Windows-brandväggen.';
+
+  @override
+  String get firewallFix => 'Tillåt';
+
+  @override
+  String get sameWifiHint =>
+      'Telefon och dator måste vara på samma nätverk. Gäst-Wi-Fi hindrar ofta enheter från att se varandra.';
+
+  @override
+  String get phoneShareHint =>
+      'Inget delat än. På telefonen: PC-delning → ⋮ → Dela telefonmapp.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefonen svarar inte — återansluter automatiskt…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Öppna Nova på telefonen på samma Wi-Fi — den återansluter inom några sekunder.';
+
+  @override
+  String get disconnectNote =>
+      'Telefonen glömmer datorn och måste skanna QR-koden igen.';
 }

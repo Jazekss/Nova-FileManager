@@ -144,4 +144,79 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Dateien in den freigegebenen Telefonordnern auswählen und löschen';
+
+  @override
+  String get sort => 'Sortieren';
+
+  @override
+  String get sortName => 'Name';
+
+  @override
+  String get sortSize => 'Größe';
+
+  @override
+  String get sortDate => 'Datum';
+
+  @override
+  String get sortAsc => 'Aufsteigend';
+
+  @override
+  String get sortDesc => 'Absteigend';
+
+  @override
+  String get statusReconnecting => 'Verbindung wird wiederhergestellt…';
+
+  @override
+  String get statusWaiting => 'Warte auf Telefon';
+
+  @override
+  String get connectTitle => 'Telefon verbinden';
+
+  @override
+  String get connectStep1 => 'Öffne auf dem Telefon Nova → PC-Freigabe';
+
+  @override
+  String get connectStep2 =>
+      'Tippe auf „QR scannen“ und richte die Kamera auf diesen Code';
+
+  @override
+  String get connectAuto =>
+      'Schon gekoppelt? Öffne einfach Nova auf dem Telefon – es verbindet sich selbst.';
+
+  @override
+  String get noNetwork => 'Keine Netzwerkverbindung auf diesem PC gefunden.';
+
+  @override
+  String get firewallOk => 'Windows-Firewall erlaubt Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Die Windows-Firewall blockiert die Verbindung des Telefons.';
+
+  @override
+  String get firewallUnknown =>
+      'Wenn das Telefon keine Verbindung bekommt, erlaube Nova Transfer in der Windows-Firewall.';
+
+  @override
+  String get firewallFix => 'Erlauben';
+
+  @override
+  String get sameWifiHint =>
+      'Telefon und PC müssen im selben Netzwerk sein. Gast-WLANs verhindern oft, dass Geräte sich sehen.';
+
+  @override
+  String get phoneShareHint =>
+      'Noch nichts freigegeben. Auf dem Telefon: PC-Freigabe → ⋮ → Telefonordner freigeben.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefon antwortet nicht – Verbindung wird automatisch wiederhergestellt…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Öffne Nova auf dem Telefon im selben WLAN – die Verbindung steht in wenigen Sekunden wieder.';
+
+  @override
+  String get disconnectNote =>
+      'Das Telefon vergisst diesen PC und muss den QR-Code erneut scannen.';
 }

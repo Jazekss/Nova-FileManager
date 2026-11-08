@@ -237,6 +237,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sharedToPc => 'Открыт доступ к ПК';
 
   @override
+  String get sharedFromPc => 'Общие с ПК';
+
+  @override
   String get pairWithPc => 'Связать с компьютером';
 
   @override
@@ -575,4 +578,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Не удаётся воспроизвести: $error';
   }
+
+  @override
+  String get pcReconnecting => 'Компьютер недоступен — переподключение…';
+
+  @override
+  String get pcRejected =>
+      'Компьютер больше не узнаёт этот телефон. Отсканируйте QR-код снова.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Не удаётся связаться с компьютером. Убедитесь, что Nova Transfer открыт, оба устройства в одной сети Wi-Fi, а брандмауэр Windows разрешает Nova Transfer.';
 }

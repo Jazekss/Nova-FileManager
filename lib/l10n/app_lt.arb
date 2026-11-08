@@ -84,6 +84,7 @@
   "driveTrashQ": "Perkelti į Drive šiukšliadėžę?",
   "comingSoon": "Netrukus",
   "sharedToPc": "Bendrinta į PC",
+  "sharedFromPc": "Bendrinta iš PC",
   "pairWithPc": "Susieti su kompiuteriu",
   "pcPairHint": "Kompiuteryje atidarykite Nova File Manager Desktop ir ryšio meniu parodykite susiejimo QR.",
   "invalidPairLink": "Neteisinga susiejimo nuoroda",
@@ -193,5 +194,9 @@
   "extractedTo": "Išskleista į {path}",
   "extractFailed": "Išskleidimas nepavyko: {error}",
 
-  "cannotPlay": "Nepavyksta paleisti: {error}"
+  "cannotPlay": "Nepavyksta paleisti: {error}",
+
+  "pcReconnecting": "Kompiuteris nepasiekiamas — jungiamasi automatiškai…",
+  "pcRejected": "Kompiuteris nebeatpažįsta šio telefono. Nuskaitykite QR kodą dar kartą.",
+  "pcUnreachableHint": "Nepavyksta pasiekti kompiuterio. Įsitikinkite, kad Nova Transfer atidaryta, abu įrenginiai tame pačiame Wi-Fi, o Windows užkarda leidžia Nova Transfer."
 }

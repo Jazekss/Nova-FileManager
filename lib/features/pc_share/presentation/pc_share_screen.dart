@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/settings/settings_controller.dart';
 import '../../../core/theme/app_theme.dart';
@@ -13,8 +12,9 @@ import '../../../core/utils/l10n_ext.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../file_manager/application/file_browser_controller.dart';
 import '../../file_manager/presentation/widgets/browser_dialogs.dart';
+import '../../media/presentation/audio_player_screen.dart';
 import '../../media/presentation/video_player_screen.dart';
-import '../../transfer/data/wifi_share_server.dart';
+import '../application/pc_link_service.dart';
 import '../data/pc_client.dart';
 
 /// Pair with Nova File Manager Desktop, then browse the PC's shared
@@ -28,10 +28,12 @@ class PcShareScreen extends StatefulWidget {
 }
 
 class _PcShareScreenState extends State<PcShareScreen> {
-  final _client = PcClient();
+  late final PcLinkService _link = context.read<PcLinkService>();
+  PcClient get _client => _link.client;
   final _linkController = TextEditingController();
 
-  bool _ready = false;
+  /// Last onlineEpoch seen — a new one means the link came back.
+  int _epoch = -1;
   List<PcEntry> _entries = [];
   final List<String> _crumbs = []; // dir path stack; '' = shared roots
   bool _loading = false;
@@ -47,59 +49,57 @@ class _PcShareScreenState extends State<PcShareScreen> {
   /// Selected entries (lightbox checkmarks / tap-toggle) — paths.
   final Set<String> _selected = {};
 
-  /// Prefs key holding the shared root paths — restored on next launch
-  /// so the PC keeps seeing the same folders after an app restart.
-  static const _keyShareRoots = 'pc_share_roots';
-
   static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
   static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+  static const _audioExts = {
+    'mp3',
+    'wav',
+    'ogg',
+    'oga',
+    'opus',
+    'm4a',
+    'aac',
+    'flac',
+  };
 
   static String _ext(PcEntry e) =>
       e.name.contains('.') ? e.name.split('.').last.toLowerCase() : '';
-
-  /// Phone-side share server registered to the PC's right panel.
-  WifiShareServer? _shareServer;
 
   String get _currentDir => _crumbs.isEmpty ? '' : _crumbs.last;
 
   @override
   void initState() {
     super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    await _client.load();
-    if (!mounted) return;
-    setState(() => _ready = true);
+    _epoch = _link.onlineEpoch;
+    _link.addListener(_onLink);
+    final browser = context.read<FileBrowserController>();
+    if (browser.volumes.isNotEmpty) {
+      _link.uploadDir = '${browser.volumes.first.path}/Download/Nova';
+    }
     if (_client.isPaired) {
       _refresh();
-      _restoreShare();
+      // Opening the screen is a good moment to check the link now.
+      _link.tick();
     }
   }
 
-  /// Restarts the share server with the last-picked roots and
-  /// re-registers its URL — makes the shared folders survive app
-  /// restarts (and the desktop's saved phone URL becomes stale-safe).
-  Future<void> _restoreShare() async {
-    try {
-      final p = await SharedPreferences.getInstance();
-      final roots = (p.getStringList(_keyShareRoots) ?? [])
-          .where(
-            (r) =>
-                FileSystemEntity.typeSync(r) != FileSystemEntityType.notFound,
-          )
-          .toList();
-      if (roots.isEmpty) return;
-      await _startShare(roots, silent: true);
-    } catch (_) {}
+  /// Link came back online (Wi-Fi back, PC restarted, IP changed) →
+  /// reload the listing so the user never has to tap "Refresh".
+  void _onLink() {
+    if (!mounted) return;
+    if (_link.onlineEpoch != _epoch) {
+      _epoch = _link.onlineEpoch;
+      if (_client.isPaired) _refresh();
+    }
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _link.removeListener(_onLink);
     _linkController.dispose();
-    // Note: _shareServer intentionally keeps running — the phone stays
-    // shared until the user explicitly disconnects or closes the app.
+    // The share server lives in PcLinkService and keeps running — the
+    // phone stays shared until the user explicitly disconnects.
     super.dispose();
   }
 
@@ -110,14 +110,17 @@ class _PcShareScreenState extends State<PcShareScreen> {
       _loading = true;
       _error = null;
     });
-    final err = await _client.pair(link);
+    final err = await _link.pair(link);
     if (!mounted) return;
     if (err != null) {
+      final tr = l10n(context);
       setState(() {
         _loading = false;
-        _error = err == 'invalid_link'
-            ? l10n(context).invalidPairLink
-            : '${l10n(context).pairFailed}: $err';
+        _error = switch (err) {
+          'invalid_link' => tr.invalidPairLink,
+          'rejected' => tr.pcRejected,
+          _ => tr.pcUnreachableHint,
+        };
       });
       return;
     }
@@ -158,13 +161,12 @@ class _PcShareScreenState extends State<PcShareScreen> {
   }
 
   Future<void> _unpair() async {
-    await _shareServer?.stop();
-    _shareServer = null;
-    await _client.unpair();
+    await _link.unpair();
     if (!mounted) return;
     setState(() {
       _entries = [];
       _crumbs.clear();
+      _error = null;
     });
   }
 
@@ -181,6 +183,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
     var idx = images.indexOf(e);
     if (idx < 0) return;
     final controller = PageController(initialPage: idx);
+    var zoomed = false;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -192,8 +195,14 @@ class _PcShareScreenState extends State<PcShareScreen> {
               children: [
                 PageView.builder(
                   controller: controller,
+                  // Zoomed in → one-finger pan moves the picture, not the
+                  // page; swipe between images works again at 1x.
+                  physics: zoomed ? const NeverScrollableScrollPhysics() : null,
                   itemCount: images.length,
-                  onPageChanged: (i) => setD(() => idx = i),
+                  onPageChanged: (i) => setD(() {
+                    idx = i;
+                    zoomed = false;
+                  }),
                   itemBuilder: (context, i) => Center(
                     child: FutureBuilder<Uint8List?>(
                       future: _client.fetch(images[i]),
@@ -209,9 +218,11 @@ class _PcShareScreenState extends State<PcShareScreen> {
                             size: 64,
                           );
                         }
-                        return InteractiveViewer(
-                          maxScale: 8,
-                          child: Image.memory(bytes),
+                        return _ZoomableImage(
+                          bytes: bytes,
+                          onZoomChanged: (z) {
+                            if (z != zoomed) setD(() => zoomed = z);
+                          },
                         );
                       },
                     ),
@@ -264,6 +275,27 @@ class _PcShareScreenState extends State<PcShareScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
+                // File name + position over the image.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: Container(
+                      color: Colors.black54,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        '${cur.name}  ·  ${idx + 1} / ${images.length}',
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 8,
                   right: 8,
@@ -307,6 +339,37 @@ class _PcShareScreenState extends State<PcShareScreen> {
         },
       ),
     );
+  }
+
+  /// Audio preview: fetched through the sealed channel into a temp file
+  /// and played in the built-in audio player — same flow as video.
+  Future<void> _previewAudio(PcEntry e) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      final bytes = await _client.fetch(e);
+      if (!mounted) return;
+      Navigator.pop(context);
+      if (bytes == null) throw 'fetch';
+      final tmp = Directory.systemTemp.createTempSync('nova_audio');
+      final f = File('${tmp.path}/${e.name}');
+      await f.writeAsBytes(bytes);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AudioPlayerScreen(path: f.path),
+        ),
+      );
+      f.parent.delete(recursive: true).ignore();
+    } catch (err) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$err')));
+    }
   }
 
   /// Video preview: fetched through the sealed channel into a temp file
@@ -362,6 +425,8 @@ class _PcShareScreenState extends State<PcShareScreen> {
       await _previewImage(e);
     } else if (_videoExts.contains(ext)) {
       await _previewVideo(e);
+    } else if (_audioExts.contains(ext)) {
+      await _previewAudio(e);
     } else {
       await _download(e);
     }
@@ -371,7 +436,10 @@ class _PcShareScreenState extends State<PcShareScreen> {
   Future<void> _entryMenu(PcEntry e) async {
     setState(() => _menuPath = e.path);
     final ext = _ext(e);
-    final isMedia = _imgExts.contains(ext) || _videoExts.contains(ext);
+    final isMedia =
+        _imgExts.contains(ext) ||
+        _videoExts.contains(ext) ||
+        _audioExts.contains(ext);
     final tr = l10n(context);
     try {
       await showModalBottomSheet<void>(
@@ -509,21 +577,22 @@ class _PcShareScreenState extends State<PcShareScreen> {
         _loading = false;
         _selected.clear();
       });
-    } on StateError catch (e) {
-      if (e.message == 'unpaired') {
-        await _client.unpair();
-      }
+    } on StateError {
+      // Pairing is kept — a 403 is no longer treated as "forget the PC".
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = l10n(context).pairFailed;
+        _error = l10n(context).pcRejected;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = '$e';
+        _error = l10n(context).pcUnreachableHint;
       });
+      // Kick a reconnect (fallback IPs / discovery) — when it succeeds
+      // the listing reloads by itself via _onLink.
+      _link.tick();
     }
   }
 
@@ -575,7 +644,8 @@ class _PcShareScreenState extends State<PcShareScreen> {
 
   /// Multi-select picker (checkbox selects, tapping a folder opens it)
   /// then shares all picked folders/files to the PC's right panel.
-  /// Roots are persisted so a phone-side restart re-shares them.
+  /// New picks are merged with the already-shared roots, and the set is
+  /// persisted so a phone-side restart re-shares them.
   Future<void> _sharePhoneFolder() async {
     final browser = context.read<FileBrowserController>();
     final paths = await showMultiPickDialog(
@@ -588,7 +658,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
     );
     if (paths == null || !mounted) return;
     try {
-      await _startShare(paths);
+      await _link.setShareRoots({..._link.shareRoots, ...paths}.toList());
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n(context).sharedToPc)));
@@ -598,25 +668,62 @@ class _PcShareScreenState extends State<PcShareScreen> {
     }
   }
 
-  /// Starts/restarts the share server over [roots] (dirs are browsable,
-  /// files downloadable) and registers the fresh URL with the PC.
-  Future<void> _startShare(List<String> roots, {bool silent = false}) async {
-    final browser = context.read<FileBrowserController>();
-    final uploadDir = '${browser.volumes.first.path}/Download/Nova';
-    await _shareServer?.stop();
-    _shareServer = WifiShareServer(
-      uploadDir: Directory(uploadDir),
-      onUnpair: () {
-        // PC asked to disconnect.
-        _shareServer = null;
-        if (mounted) _unpair();
-      },
+  /// Stops sharing a single root; the rest keep serving. Removing the
+  /// last one shuts the share server down and unregisters from the PC.
+  Future<void> _removeShareRoot(String path) async {
+    try {
+      await _link.setShareRoots(
+        _link.shareRoots.where((r) => r != path).toList(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
+  /// Thin strip under the app bar while the PC isn't answering — shows
+  /// that reconnecting runs by itself, plus a manual retry.
+  Widget _statusStrip(AppLocalizations tr) {
+    final st = _link.status;
+    if (!_client.isPaired || st == PcLinkStatus.online) {
+      return const SizedBox.shrink();
+    }
+    final scheme = Theme.of(context).colorScheme;
+    final rejected = st == PcLinkStatus.rejected;
+    return Material(
+      color: rejected ? scheme.errorContainer : scheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+        child: Row(
+          children: [
+            if (!rejected)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Icon(Icons.link_off, size: 18, color: scheme.onErrorContainer),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                rejected ? tr.pcRejected : tr.pcReconnecting,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            if (rejected)
+              TextButton(onPressed: _unpair, child: Text(tr.scanQr))
+            else
+              TextButton(
+                onPressed: () => _link.tick(force: true),
+                child: Text(tr.refresh),
+              ),
+          ],
+        ),
+      ),
     );
-    await _shareServer!.start(roots);
-    await _client.registerPhoneUrl(_shareServer!.url);
-    final p = await SharedPreferences.getInstance();
-    await p.setStringList(_keyShareRoots, roots);
-    if (!silent && mounted) setState(() {});
   }
 
   @override
@@ -717,11 +824,14 @@ class _PcShareScreenState extends State<PcShareScreen> {
                   ),
                 ),
               ),
-        body: !_ready
-            ? const Center(child: CircularProgressIndicator())
-            : !_client.isPaired
+        body: !_client.isPaired
             ? _buildPairing(tr)
-            : _buildList(tr),
+            : Column(
+                children: [
+                  _statusStrip(tr),
+                  Expanded(child: _buildList(tr)),
+                ],
+              ),
       ),
     );
   }
@@ -788,7 +898,9 @@ class _PcShareScreenState extends State<PcShareScreen> {
     }
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: _entries.isEmpty
+      child: _currentDir.isEmpty
+          ? _buildRootsView(tr)
+          : _entries.isEmpty
           ? ListView(children: [Center(child: Text(tr.emptyFolder))])
           : _viewMode == 'list'
           ? ListView.builder(
@@ -808,6 +920,103 @@ class _PcShareScreenState extends State<PcShareScreen> {
                 itemBuilder: (context, i) => _gridCell(_entries[i]),
               ),
             ),
+    );
+  }
+
+  /// Roots level: on top the folders the PC shared to the phone, below
+  /// them the folders/files the phone shares back to the PC.
+  Widget _buildRootsView(AppLocalizations tr) {
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        _sectionHeader(tr.sharedFromPc),
+        if (_entries.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.spacingLg,
+              vertical: AppTokens.spacingSm,
+            ),
+            child: Text(
+              tr.emptyFolder,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          )
+        else if (_viewMode == 'list')
+          ..._entries.map(_listTile)
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(8),
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: _viewMode == 'large' ? 180 : 110,
+              childAspectRatio: 0.78,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: _entries.length,
+            itemBuilder: (context, i) => _gridCell(_entries[i]),
+          ),
+        const Divider(height: 28),
+        _sectionHeader(tr.sharedToPc, onAdd: _sharePhoneFolder),
+        if (_link.shareRoots.isEmpty)
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.create_new_folder_outlined),
+            title: Text(tr.sharePhoneFolder),
+            onTap: _sharePhoneFolder,
+          )
+        else
+          for (final r in _link.shareRoots) _shareRootTile(r),
+      ],
+    );
+  }
+
+  Widget _sectionHeader(String title, {VoidCallback? onAdd}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 4, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          ),
+          if (onAdd != null)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: l10n(context).sharePhoneFolder,
+              onPressed: onAdd,
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// One shared phone root: folder or file icon, basename + full path,
+  /// trailing button removes just this share.
+  Widget _shareRootTile(String path) {
+    final isDir =
+        FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
+    return ListTile(
+      dense: true,
+      leading: Icon(
+        isDir ? Icons.folder_shared_outlined : Icons.insert_drive_file_outlined,
+      ),
+      title: Text(
+        path.split('/').last,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        path,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.remove_circle_outline),
+        tooltip: l10n(context).wifiStop,
+        onPressed: () => _removeShareRoot(path),
+      ),
     );
   }
 
@@ -951,6 +1160,50 @@ class _QrScanPage extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+}
+
+/// Zoomable image that reports whether it is currently zoomed — the
+/// parent pager locks its scroll physics while zoomed so panning the
+/// picture doesn't flip to the next/previous image.
+class _ZoomableImage extends StatefulWidget {
+  const _ZoomableImage({required this.bytes, required this.onZoomChanged});
+
+  final Uint8List bytes;
+  final void Function(bool zoomed) onZoomChanged;
+
+  @override
+  State<_ZoomableImage> createState() => _ZoomableImageState();
+}
+
+class _ZoomableImageState extends State<_ZoomableImage> {
+  final _controller = TransformationController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_notify);
+  }
+
+  void _notify() {
+    final zoomed = _controller.value.getMaxScaleOnAxis() > 1.001;
+    widget.onZoomChanged(zoomed);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_notify);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      transformationController: _controller,
+      maxScale: 8,
+      child: Image.memory(widget.bytes),
     );
   }
 }

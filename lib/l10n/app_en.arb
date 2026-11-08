@@ -84,6 +84,7 @@
   "driveTrashQ": "Move to Drive trash?",
   "comingSoon": "Coming soon",
   "sharedToPc": "Shared to PC",
+  "sharedFromPc": "Shared from PC",
   "pairWithPc": "Pair with your computer",
   "pcPairHint": "Open Nova File Manager Desktop on your PC and show the pairing QR in the connection menu.",
   "invalidPairLink": "Invalid pairing link",
@@ -193,5 +194,9 @@
   "extractedTo": "Extracted to {path}",
   "extractFailed": "Extract failed: {error}",
 
-  "cannotPlay": "Cannot play: {error}"
+  "cannotPlay": "Cannot play: {error}",
+
+  "pcReconnecting": "PC not reachable — reconnecting automatically…",
+  "pcRejected": "The PC no longer recognises this phone. Scan the QR code again.",
+  "pcUnreachableHint": "Can't reach the PC. Make sure Nova Transfer is open, both devices are on the same Wi-Fi, and Windows Firewall allows Nova Transfer."
 }

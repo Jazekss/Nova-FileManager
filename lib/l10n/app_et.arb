@@ -84,6 +84,7 @@
   "driveTrashQ": "Teisalda Drive'i prügikasti?",
   "comingSoon": "Varsti",
   "sharedToPc": "Jagatud PC-sse",
+  "sharedFromPc": "Jagatud PC-st",
   "pairWithPc": "Seo arvutiga",
   "pcPairHint": "Ava arvutis Nova File Manager Desktop ja näita ühenduse menüüst sidumise QR-i.",
   "invalidPairLink": "Vigane sidumislink",
@@ -193,5 +194,9 @@
   "extractedTo": "Lahti pakitud kausta {path}",
   "extractFailed": "Lahtipakkimine ebaõnnestus: {error}",
 
-  "cannotPlay": "Esitamine ebaõnnestus: {error}"
+  "cannotPlay": "Esitamine ebaõnnestus: {error}",
+
+  "pcReconnecting": "Arvuti pole kättesaadav — ühendan automaatselt uuesti…",
+  "pcRejected": "Arvuti ei tunne seda telefoni enam ära. Skanni QR-kood uuesti.",
+  "pcUnreachableHint": "Arvutiga ei saa ühendust. Veendu, et Nova Transfer on avatud, mõlemad seadmed on samas Wi-Fis ja Windowsi tulemüür lubab Nova Transferi."
 }

@@ -84,6 +84,7 @@
   "driveTrashQ": "Переместить в корзину Drive?",
   "comingSoon": "Скоро",
   "sharedToPc": "Открыт доступ к ПК",
+  "sharedFromPc": "Общие с ПК",
   "pairWithPc": "Связать с компьютером",
   "pcPairHint": "Откройте Nova File Manager Desktop на ПК и покажите QR сопряжения в меню подключения.",
   "invalidPairLink": "Неверная ссылка сопряжения",
@@ -193,5 +194,9 @@
   "extractedTo": "Распаковано в {path}",
   "extractFailed": "Ошибка распаковки: {error}",
 
-  "cannotPlay": "Не удаётся воспроизвести: {error}"
+  "cannotPlay": "Не удаётся воспроизвести: {error}",
+
+  "pcReconnecting": "Компьютер недоступен — переподключение…",
+  "pcRejected": "Компьютер больше не узнаёт этот телефон. Отсканируйте QR-код снова.",
+  "pcUnreachableHint": "Не удаётся связаться с компьютером. Убедитесь, что Nova Transfer открыт, оба устройства в одной сети Wi-Fi, а брандмауэр Windows разрешает Nova Transfer."
 }

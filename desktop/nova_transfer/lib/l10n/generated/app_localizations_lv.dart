@@ -145,4 +145,78 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Atzīmēt un dzēst failus telefona koplietotajās mapēs';
+
+  @override
+  String get sort => 'Kārtot';
+
+  @override
+  String get sortName => 'Nosaukums';
+
+  @override
+  String get sortSize => 'Izmērs';
+
+  @override
+  String get sortDate => 'Datums';
+
+  @override
+  String get sortAsc => 'Augoši';
+
+  @override
+  String get sortDesc => 'Dilstoši';
+
+  @override
+  String get statusReconnecting => 'Atjauno savienojumu…';
+
+  @override
+  String get statusWaiting => 'Gaida telefonu';
+
+  @override
+  String get connectTitle => 'Savieno telefonu';
+
+  @override
+  String get connectStep1 => 'Telefonā atver Nova → PC koplietošana';
+
+  @override
+  String get connectStep2 => 'Spied “Skenēt QR” un notēmē kameru uz šo kodu';
+
+  @override
+  String get connectAuto =>
+      'Jau savienots iepriekš? Vienkārši atver Nova telefonā — savienojums atjaunosies pats.';
+
+  @override
+  String get noNetwork => 'Šim datoram nav atrasts tīkla savienojums.';
+
+  @override
+  String get firewallOk => 'Windows ugunsmūris atļauj Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Windows ugunsmūris neļauj telefonam pieslēgties.';
+
+  @override
+  String get firewallUnknown =>
+      'Ja telefons nevar pieslēgties, atļauj Nova Transfer Windows ugunsmūrī.';
+
+  @override
+  String get firewallFix => 'Atļaut';
+
+  @override
+  String get sameWifiHint =>
+      'Telefonam un datoram jābūt vienā tīklā. Viesu Wi-Fi bieži neļauj ierīcēm vienai otru redzēt.';
+
+  @override
+  String get phoneShareHint =>
+      'Vēl nekas nav koplietots. Telefonā: PC koplietošana → ⋮ → Koplietot telefona mapi.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefons neatbild — savienojums tiek atjaunots automātiski…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Atver Nova telefonā un esi tajā pašā Wi-Fi — savienojums atjaunosies dažu sekunžu laikā.';
+
+  @override
+  String get disconnectNote =>
+      'Telefons aizmirsīs šo datoru, un QR kods būs jāskenē vēlreiz.';
 }

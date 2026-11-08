@@ -12,6 +12,7 @@ class DesktopSettings extends ChangeNotifier {
   static const _keyViewMode = 'viewMode';
   static const _keyPhoneUrl = 'phoneUrl';
   static const _keyManagePhone = 'managePhone';
+  static const _keyPhoneSort = 'phoneSort';
 
   ThemeMode themeMode = ThemeMode.system;
   String? languageCode;
@@ -38,6 +39,20 @@ class DesktopSettings extends ChangeNotifier {
   /// Allow file management (select/delete) on phone-shared files.
   bool managePhone = true;
 
+  /// Phone-pane sort: `field_dir` — field: name|size|date,
+  /// dir: asc|desc. Default newest first.
+  String phoneSort = 'date_desc';
+
+  String get phoneSortField => phoneSort.split('_').first;
+  bool get phoneSortAsc => phoneSort.endsWith('_asc');
+
+  Future<void> setPhoneSort(String field, bool asc) async {
+    phoneSort = '${field}_${asc ? 'asc' : 'desc'}';
+    notifyListeners();
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyPhoneSort, phoneSort);
+  }
+
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     themeMode = switch (p.getString(_keyTheme)) {
@@ -53,6 +68,16 @@ class DesktopSettings extends ChangeNotifier {
     viewMode = p.getString(_keyViewMode) ?? 'small';
     phoneUrl = p.getString(_keyPhoneUrl);
     managePhone = p.getBool(_keyManagePhone) ?? true;
+    final sort = p.getString(_keyPhoneSort) ?? 'date_desc';
+    phoneSort = switch (sort) {
+      'name_asc' ||
+      'name_desc' ||
+      'size_asc' ||
+      'size_desc' ||
+      'date_asc' ||
+      'date_desc' => sort,
+      _ => 'date_desc',
+    };
     notifyListeners();
   }
 

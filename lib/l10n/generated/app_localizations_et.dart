@@ -235,6 +235,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get sharedToPc => 'Jagatud PC-sse';
 
   @override
+  String get sharedFromPc => 'Jagatud PC-st';
+
+  @override
   String get pairWithPc => 'Seo arvutiga';
 
   @override
@@ -573,4 +576,16 @@ class AppLocalizationsEt extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Esitamine ebaõnnestus: $error';
   }
+
+  @override
+  String get pcReconnecting =>
+      'Arvuti pole kättesaadav — ühendan automaatselt uuesti…';
+
+  @override
+  String get pcRejected =>
+      'Arvuti ei tunne seda telefoni enam ära. Skanni QR-kood uuesti.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Arvutiga ei saa ühendust. Veendu, et Nova Transfer on avatud, mõlemad seadmed on samas Wi-Fis ja Windowsi tulemüür lubab Nova Transferi.';
 }

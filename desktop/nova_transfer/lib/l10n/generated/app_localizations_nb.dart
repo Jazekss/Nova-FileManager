@@ -144,4 +144,78 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get managePhoneNote => 'Merk og slett filer i telefonens delte mapper';
+
+  @override
+  String get sort => 'Sorter';
+
+  @override
+  String get sortName => 'Navn';
+
+  @override
+  String get sortSize => 'Størrelse';
+
+  @override
+  String get sortDate => 'Dato';
+
+  @override
+  String get sortAsc => 'Stigende';
+
+  @override
+  String get sortDesc => 'Synkende';
+
+  @override
+  String get statusReconnecting => 'Kobler til på nytt…';
+
+  @override
+  String get statusWaiting => 'Venter på telefon';
+
+  @override
+  String get connectTitle => 'Koble til telefonen';
+
+  @override
+  String get connectStep1 => 'Åpne Nova → PC-deling på telefonen';
+
+  @override
+  String get connectStep2 => 'Trykk «Skann QR» og pek kameraet mot denne koden';
+
+  @override
+  String get connectAuto =>
+      'Allerede paret? Bare åpne Nova på telefonen — den kobler til selv.';
+
+  @override
+  String get noNetwork => 'Fant ingen nettverkstilkobling på denne PC-en.';
+
+  @override
+  String get firewallOk => 'Windows-brannmuren tillater Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Windows-brannmuren hindrer telefonen i å koble til.';
+
+  @override
+  String get firewallUnknown =>
+      'Hvis telefonen ikke kobler til, tillat Nova Transfer i Windows-brannmuren.';
+
+  @override
+  String get firewallFix => 'Tillat';
+
+  @override
+  String get sameWifiHint =>
+      'Telefon og PC må være på samme nettverk. Gjeste-Wi-Fi hindrer ofte enheter i å se hverandre.';
+
+  @override
+  String get phoneShareHint =>
+      'Ingenting delt ennå. På telefonen: PC-deling → ⋮ → Del telefonmappe.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefonen svarer ikke — kobler til automatisk…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Åpne Nova på telefonen på samme Wi-Fi — den kobler til igjen i løpet av sekunder.';
+
+  @override
+  String get disconnectNote =>
+      'Telefonen glemmer denne PC-en og må skanne QR-koden på nytt.';
 }

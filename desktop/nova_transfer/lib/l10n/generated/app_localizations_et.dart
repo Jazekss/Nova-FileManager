@@ -145,4 +145,78 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Vali ja kustuta faile telefoni jagatud kaustades';
+
+  @override
+  String get sort => 'Sorteeri';
+
+  @override
+  String get sortName => 'Nimi';
+
+  @override
+  String get sortSize => 'Suurus';
+
+  @override
+  String get sortDate => 'Kuupäev';
+
+  @override
+  String get sortAsc => 'Kasvav';
+
+  @override
+  String get sortDesc => 'Kahanev';
+
+  @override
+  String get statusReconnecting => 'Ühendan uuesti…';
+
+  @override
+  String get statusWaiting => 'Ootan telefoni';
+
+  @override
+  String get connectTitle => 'Ühenda telefon';
+
+  @override
+  String get connectStep1 => 'Ava telefonis Nova → PC jagamine';
+
+  @override
+  String get connectStep2 =>
+      'Vajuta „Skanni QR“ ja suuna kaamera sellele koodile';
+
+  @override
+  String get connectAuto =>
+      'Juba seotud? Ava lihtsalt telefonis Nova — ühendus taastub ise.';
+
+  @override
+  String get noNetwork => 'Selles arvutis ei leitud võrguühendust.';
+
+  @override
+  String get firewallOk => 'Windowsi tulemüür lubab Nova Transferi';
+
+  @override
+  String get firewallBlocked => 'Windowsi tulemüür ei lase telefonil ühenduda.';
+
+  @override
+  String get firewallUnknown =>
+      'Kui telefon ei saa ühendust, luba Nova Transfer Windowsi tulemüüris.';
+
+  @override
+  String get firewallFix => 'Luba';
+
+  @override
+  String get sameWifiHint =>
+      'Telefon ja arvuti peavad olema samas võrgus. Külalis-Wi-Fi ei lase seadmetel sageli üksteist näha.';
+
+  @override
+  String get phoneShareHint =>
+      'Midagi pole veel jagatud. Telefonis: PC jagamine → ⋮ → Jaga telefoni kausta.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefon ei vasta — ühendan automaatselt uuesti…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Ava telefonis Nova samas Wi-Fi võrgus — ühendus taastub mõne sekundiga.';
+
+  @override
+  String get disconnectNote =>
+      'Telefon unustab selle arvuti ja QR-kood tuleb uuesti skannida.';
 }

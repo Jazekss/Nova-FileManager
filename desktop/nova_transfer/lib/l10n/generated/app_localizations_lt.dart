@@ -145,4 +145,79 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Pažymėti ir trinti failus telefono bendrinamuose aplankuose';
+
+  @override
+  String get sort => 'Rikiuoti';
+
+  @override
+  String get sortName => 'Pavadinimas';
+
+  @override
+  String get sortSize => 'Dydis';
+
+  @override
+  String get sortDate => 'Data';
+
+  @override
+  String get sortAsc => 'Didėjančiai';
+
+  @override
+  String get sortDesc => 'Mažėjančiai';
+
+  @override
+  String get statusReconnecting => 'Jungiamasi iš naujo…';
+
+  @override
+  String get statusWaiting => 'Laukiama telefono';
+
+  @override
+  String get connectTitle => 'Prijunkite telefoną';
+
+  @override
+  String get connectStep1 => 'Telefone atidarykite Nova → PC bendrinimas';
+
+  @override
+  String get connectStep2 =>
+      'Bakstelėkite „Skaityti QR“ ir nukreipkite kamerą į šį kodą';
+
+  @override
+  String get connectAuto =>
+      'Jau suporuota? Tiesiog atidarykite Nova telefone — prisijungs pats.';
+
+  @override
+  String get noNetwork => 'Šiame kompiuteryje nerastas tinklo ryšys.';
+
+  @override
+  String get firewallOk => 'Windows užkarda leidžia Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Windows užkarda neleidžia telefonui prisijungti.';
+
+  @override
+  String get firewallUnknown =>
+      'Jei telefonas negali prisijungti, leiskite Nova Transfer Windows užkardoje.';
+
+  @override
+  String get firewallFix => 'Leisti';
+
+  @override
+  String get sameWifiHint =>
+      'Telefonas ir kompiuteris turi būti tame pačiame tinkle. Svečių Wi-Fi dažnai neleidžia įrenginiams matyti vienas kito.';
+
+  @override
+  String get phoneShareHint =>
+      'Dar niekas nebendrinama. Telefone: PC bendrinimas → ⋮ → Bendrinti telefono aplanką.';
+
+  @override
+  String get phoneReconnecting =>
+      'Telefonas neatsako — jungiamasi automatiškai…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Atidarykite Nova telefone tame pačiame Wi-Fi — prisijungs per kelias sekundes.';
+
+  @override
+  String get disconnectNote =>
+      'Telefonas pamirš šį kompiuterį ir turės dar kartą nuskaityti QR kodą.';
 }

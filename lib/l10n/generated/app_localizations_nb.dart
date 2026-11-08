@@ -236,6 +236,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get sharedToPc => 'Delt til PC';
 
   @override
+  String get sharedFromPc => 'Delt fra PC';
+
+  @override
   String get pairWithPc => 'Koble til datamaskinen';
 
   @override
@@ -574,4 +577,15 @@ class AppLocalizationsNb extends AppLocalizations {
   String cannotPlay(Object error) {
     return 'Kan ikke spille: $error';
   }
+
+  @override
+  String get pcReconnecting => 'PC-en svarer ikke — kobler til automatisk…';
+
+  @override
+  String get pcRejected =>
+      'PC-en kjenner ikke lenger igjen telefonen. Skann QR-koden på nytt.';
+
+  @override
+  String get pcUnreachableHint =>
+      'Får ikke kontakt med PC-en. Sjekk at Nova Transfer er åpen, at begge enhetene er på samme Wi-Fi og at Windows-brannmuren tillater Nova Transfer.';
 }

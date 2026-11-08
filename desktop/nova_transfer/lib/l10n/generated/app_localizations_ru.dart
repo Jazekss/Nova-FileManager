@@ -145,4 +145,78 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get managePhoneNote =>
       'Отметить и удалить файлы в общих папках телефона';
+
+  @override
+  String get sort => 'Сортировка';
+
+  @override
+  String get sortName => 'Имя';
+
+  @override
+  String get sortSize => 'Размер';
+
+  @override
+  String get sortDate => 'Дата';
+
+  @override
+  String get sortAsc => 'По возрастанию';
+
+  @override
+  String get sortDesc => 'По убыванию';
+
+  @override
+  String get statusReconnecting => 'Переподключение…';
+
+  @override
+  String get statusWaiting => 'Ожидание телефона';
+
+  @override
+  String get connectTitle => 'Подключите телефон';
+
+  @override
+  String get connectStep1 => 'На телефоне откройте Nova → Обмен с ПК';
+
+  @override
+  String get connectStep2 =>
+      'Нажмите «Сканировать QR» и наведите камеру на этот код';
+
+  @override
+  String get connectAuto =>
+      'Уже сопряжено? Просто откройте Nova на телефоне — подключение восстановится само.';
+
+  @override
+  String get noNetwork => 'На этом компьютере не найдено сетевое подключение.';
+
+  @override
+  String get firewallOk => 'Брандмауэр Windows разрешает Nova Transfer';
+
+  @override
+  String get firewallBlocked =>
+      'Брандмауэр Windows блокирует подключение телефона.';
+
+  @override
+  String get firewallUnknown =>
+      'Если телефон не подключается, разрешите Nova Transfer в брандмауэре Windows.';
+
+  @override
+  String get firewallFix => 'Разрешить';
+
+  @override
+  String get sameWifiHint =>
+      'Телефон и компьютер должны быть в одной сети. Гостевой Wi-Fi часто не даёт устройствам видеть друг друга.';
+
+  @override
+  String get phoneShareHint =>
+      'Пока ничего не открыто. На телефоне: Обмен с ПК → ⋮ → Поделиться папкой телефона.';
+
+  @override
+  String get phoneReconnecting => 'Телефон не отвечает — переподключение…';
+
+  @override
+  String get phoneReconnectHint =>
+      'Откройте Nova на телефоне в той же сети Wi-Fi — подключение восстановится через несколько секунд.';
+
+  @override
+  String get disconnectNote =>
+      'Телефон забудет этот компьютер, и QR-код придётся сканировать снова.';
 }
