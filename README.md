@@ -8,7 +8,7 @@ and transfer files between your phone and PC over your local network.
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
 ![Platform](https://img.shields.io/badge/Android%20%26%20Windows-3DDC84?logo=android&logoColor=white)
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-☕-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/jazeks)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-☕-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/jazeknom)
 
 ## Download
 
@@ -130,4 +130,4 @@ over your own local network — encrypted.
 ## Author
 
 **JKdizains** — [jkdizains.lv](https://jkdizains.lv)
-If Nova saves you time: [buy me a coffee](https://www.buymeacoffee.com/jazeks) ☕
+If Nova saves you time: [buy me a coffee](https://www.buymeacoffee.com/jazeknom) ☕
