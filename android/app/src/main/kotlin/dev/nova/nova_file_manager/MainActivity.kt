@@ -96,6 +96,47 @@ class MainActivity : FlutterFragmentActivity() {
                                 runBg(result) { videoThumb(path) }
                             }
                         }
+                        "imageJpeg" -> {
+                            val path = call.argument<String>("path")
+                            val max = call.argument<Int>("max") ?: 320
+                            if (path == null) {
+                                result.error("ARG", "path required", null)
+                            } else {
+                                runBg(result) { imageJpeg(path, max) }
+                            }
+                        }
+                        "audioArt" -> {
+                            val path = call.argument<String>("path")
+                            if (path == null) {
+                                result.error("ARG", "path required", null)
+                            } else {
+                                runBg(result) { audioArt(path) }
+                            }
+                        }
+                        "aesGcm" -> {
+                            // Hardware-backed AES-256-GCM for LAN transfer
+                            // frames: data = ciphertext||tag on decrypt.
+                            val enc = call.argument<Boolean>("enc") ?: true
+                            val key = call.argument<ByteArray>("key")
+                            val nonce = call.argument<ByteArray>("nonce")
+                            val data = call.argument<ByteArray>("data")
+                            val aad = call.argument<ByteArray>("aad")
+                            if (key == null || nonce == null || data == null) {
+                                result.error("ARG", "key, nonce, data required", null)
+                            } else {
+                                runBg(result) {
+                                    val c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+                                    c.init(
+                                        if (enc) javax.crypto.Cipher.ENCRYPT_MODE
+                                        else javax.crypto.Cipher.DECRYPT_MODE,
+                                        javax.crypto.spec.SecretKeySpec(key, "AES"),
+                                        javax.crypto.spec.GCMParameterSpec(128, nonce),
+                                    )
+                                    if (aad != null) c.updateAAD(aad)
+                                    c.doFinal(data)
+                                }
+                            }
+                        }
                         "vaultEnsureKey" -> result.success(vaultEnsureKey())
                         "vaultEncrypt" -> {
                             val src = call.argument<String>("src")
@@ -150,20 +191,106 @@ class MainActivity : FlutterFragmentActivity() {
         return out.toByteArray()
     }
 
-    /// Grabs a video frame (~1 s in) as PNG bytes, or null when unavailable.
+    /// Grabs a video frame (~1 s in) as a small JPEG, or null.
+    /// Scaled before encoding — a full-HD PNG frame was ~3 MB and made
+    /// every thumbnail slow over the LAN.
     private fun videoThumb(path: String): ByteArray? {
         return try {
             val r = android.media.MediaMetadataRetriever()
             r.setDataSource(path)
-            val bmp = r.getFrameAtTime(1_000_000)
+            val bmp = if (android.os.Build.VERSION.SDK_INT >= 27) {
+                r.getScaledFrameAtTime(
+                    1_000_000,
+                    android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                    320,
+                    320,
+                )
+            } else {
+                r.getFrameAtTime(1_000_000)
+            }
             r.release()
             if (bmp == null) return null
-            val out = java.io.ByteArrayOutputStream()
-            bmp.compress(Bitmap.CompressFormat.PNG, 90, out)
-            out.toByteArray()
+            jpeg(scaleDown(bmp, 320), 80)
         } catch (e: Exception) {
             null
         }
+    }
+
+    /// Any image Android can decode (incl. HEIC/HEIF on Android 9+) as
+    /// a JPEG no larger than [max] px — thumbnails and previews for PCs
+    /// that can't decode HEIC themselves.
+    private fun imageJpeg(path: String, max: Int): ByteArray? {
+        return try {
+            val bounds = android.graphics.BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            android.graphics.BitmapFactory.decodeFile(path, bounds)
+            var sample = 1
+            while (bounds.outWidth / (sample * 2) >= max &&
+                bounds.outHeight / (sample * 2) >= max) {
+                sample *= 2
+            }
+            val opts = android.graphics.BitmapFactory.Options().apply {
+                inSampleSize = sample
+            }
+            var bmp = android.graphics.BitmapFactory.decodeFile(path, opts)
+                ?: return null
+            // Respect EXIF rotation (phone photos are often rotated).
+            val deg = try {
+                when (android.media.ExifInterface(path).getAttributeInt(
+                    android.media.ExifInterface.TAG_ORIENTATION,
+                    android.media.ExifInterface.ORIENTATION_NORMAL,
+                )) {
+                    android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } catch (e: Exception) {
+                0
+            }
+            if (deg != 0) {
+                val m = android.graphics.Matrix().apply { postRotate(deg.toFloat()) }
+                bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, m, true)
+            }
+            jpeg(scaleDown(bmp, max), 85)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /// Embedded cover art of an audio file as a small JPEG, or null.
+    private fun audioArt(path: String): ByteArray? {
+        return try {
+            val r = android.media.MediaMetadataRetriever()
+            r.setDataSource(path)
+            val pic = r.embeddedPicture
+            r.release()
+            if (pic == null) return null
+            val bmp = android.graphics.BitmapFactory.decodeByteArray(pic, 0, pic.size)
+                ?: return null
+            jpeg(scaleDown(bmp, 320), 80)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun scaleDown(bmp: Bitmap, max: Int): Bitmap {
+        val big = maxOf(bmp.width, bmp.height)
+        if (big <= max) return bmp
+        val f = max.toFloat() / big
+        return Bitmap.createScaledBitmap(
+            bmp,
+            (bmp.width * f).toInt().coerceAtLeast(1),
+            (bmp.height * f).toInt().coerceAtLeast(1),
+            true,
+        )
+    }
+
+    private fun jpeg(bmp: Bitmap, q: Int): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        bmp.compress(Bitmap.CompressFormat.JPEG, q, out)
+        return out.toByteArray()
     }
 
     private fun getStorageVolumes(): List<Map<String, Any>> {

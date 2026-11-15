@@ -12,8 +12,18 @@ import 'l10n/generated/app_localizations.dart';
 
 AppLocalizations _t(BuildContext c) => AppLocalizations.of(c)!;
 
-/// JPEG thumbnail for an image file (decoded in a worker isolate).
+const _shell = MethodChannel('nova/shell');
+
+/// Thumbnail of a PC file: the Windows Shell thumbnail Explorer shows
+/// (videos, HEIC with the HEIF codec, PDFs…), else a decoded image.
 Future<List<int>?> desktopThumb(String path) async {
+  try {
+    final b = await _shell.invokeMethod<Uint8List>('thumb', {
+      'path': path,
+      'size': 320,
+    });
+    if (b != null && b.isNotEmpty) return b;
+  } catch (_) {}
   const exts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
   if (!exts.contains(path.toLowerCase().split('.').last)) return null;
   try {
@@ -30,6 +40,105 @@ Future<List<int>?> desktopThumb(String path) async {
   } catch (_) {
     return null;
   }
+}
+
+const imageExts = {
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webp',
+  'bmp',
+  'heic',
+  'heif',
+  'avif',
+};
+const videoExts = {
+  'mp4',
+  'mkv',
+  'avi',
+  'mov',
+  'webm',
+  '3gp',
+  'm4v',
+  'wmv',
+  'flv',
+  'ts',
+  'mpg',
+  'mpeg',
+};
+const audioExts = {
+  'mp3',
+  'wav',
+  'ogg',
+  'oga',
+  'opus',
+  'm4a',
+  'aac',
+  'flac',
+  'wma',
+  'amr',
+};
+
+String extOf(String name) {
+  final dot = name.lastIndexOf('.');
+  return dot < 0 ? '' : name.substring(dot + 1).toLowerCase();
+}
+
+/// File-type icon with a colour — same scheme as the Android app.
+Icon typeIcon(
+  String name,
+  ColorScheme scheme,
+  double size, {
+  bool isDir = false,
+}) {
+  if (isDir) {
+    return Icon(Icons.folder_rounded, size: size, color: scheme.primary);
+  }
+  final e = extOf(name);
+  final (IconData i, Color c) = switch (e) {
+    _ when imageExts.contains(e) => (Icons.image, Colors.teal),
+    _ when videoExts.contains(e) => (Icons.movie, Colors.deepPurple),
+    _ when audioExts.contains(e) => (Icons.music_note, Colors.orange),
+    'pdf' ||
+    'doc' ||
+    'docx' ||
+    'txt' ||
+    'md' ||
+    'rtf' ||
+    'odt' => (Icons.description, Colors.blue),
+    'xls' || 'xlsx' || 'csv' || 'ods' => (Icons.table_chart, Colors.green),
+    'zip' || 'rar' || '7z' || 'tar' || 'gz' => (Icons.archive, Colors.brown),
+    'apk' || 'aab' => (Icons.android, Colors.lightGreen),
+    'exe' || 'msi' => (Icons.terminal, Colors.blueGrey),
+    _ => (Icons.insert_drive_file_outlined, scheme.onSurfaceVariant),
+  };
+  return Icon(i, size: size, color: c);
+}
+
+/// Thumbnail with a small play badge for videos.
+Widget badgedThumb(String name, Widget image, double size) {
+  if (!videoExts.contains(extOf(name))) return image;
+  return Stack(
+    children: [
+      image,
+      Positioned(
+        right: 3,
+        bottom: 3,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.black54,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.play_arrow,
+            color: Colors.white,
+            size: size < 60 ? 12 : 22,
+          ),
+        ),
+      ),
+    ],
+  );
 }
 
 void _copy(BuildContext context, String text) {
@@ -60,6 +169,7 @@ class CodeBox extends StatelessWidget {
         Expanded(
           child: SelectableText(
             value ?? '—',
+            maxLines: 1,
             style: TextStyle(
               fontFamily: 'Consolas',
               fontSize: big ? 17 : 14,
@@ -569,11 +679,11 @@ class _PeerPanelState extends State<PeerPanel> {
                   itemCount: _entries.length,
                   itemBuilder: (context, i) {
                     final e = _entries[i];
-                    Widget leading = Icon(
-                      e.isDir
-                          ? Icons.folder_rounded
-                          : Icons.insert_drive_file_outlined,
-                      color: e.isDir ? scheme.primary : scheme.onSurfaceVariant,
+                    Widget leading = typeIcon(
+                      e.name,
+                      scheme,
+                      24,
+                      isDir: e.isDir,
                     );
                     if (widget.thumbs && !e.isDir) {
                       leading = SizedBox(
@@ -588,10 +698,16 @@ class _PeerPanelState extends State<PeerPanel> {
                               ? leading
                               : ClipRRect(
                                   borderRadius: BorderRadius.circular(6),
-                                  child: Image.memory(
-                                    s.data!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => leading,
+                                  child: badgedThumb(
+                                    e.name,
+                                    Image.memory(
+                                      s.data!,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => leading,
+                                    ),
+                                    36,
                                   ),
                                 ),
                         ),
@@ -739,14 +855,14 @@ class _DevicesDialogState extends State<DevicesDialog> {
         return AlertDialog(
           title: Text(t.otherDevices),
           content: SizedBox(
-            width: 640,
+            width: 780,
             child: SingleChildScrollView(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Left: this PC's pairing QR / address / code.
                   SizedBox(
-                    width: 270,
+                    width: 340,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'dart:typed_data';
+
+import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart' as http;
 import 'package:nova_link/nova_link.dart';
 import 'package:test/test.dart';
@@ -120,5 +123,72 @@ void main() {
     await b.remove(peerA);
     expect(b.peers, isEmpty);
     expect(a.peers, isEmpty);
+  });
+
+  test('framed stream round-trips big files and detects tampering', () async {
+    final f = File('${tmp.path}${Platform.pathSeparator}big.bin');
+    final data = List<int>.generate(700 * 1024 + 13, (i) => i % 251);
+    f.writeAsBytesSync(data);
+    final frames = await LanStream.sealFile('k', f).toList();
+    expect(frames.length, 3);
+    final plain = await LanStream.open(
+      'k',
+      Stream.fromIterable(frames),
+    ).expand((c) => c).toList();
+    expect(plain, data);
+    // drop the last frame → truncated
+    await expectLater(
+      LanStream.open('k', Stream.fromIterable(frames.take(2))).toList(),
+      throwsA(isA<FormatException>()),
+    );
+    // swap frames → tag mismatch
+    await expectLater(
+      LanStream.open(
+        'k',
+        Stream.fromIterable([frames[1], frames[0], frames[2]]),
+      ).toList(),
+      throwsA(anything),
+    );
+    final empty = File('${tmp.path}${Platform.pathSeparator}empty.bin')
+      ..writeAsBytesSync([]);
+    final ef = await LanStream.sealFile('k', empty).toList();
+    expect(await LanStream.open('k', Stream.fromIterable(ef)).toList(), [
+      isEmpty,
+    ]);
+  });
+
+  test('native (ct||tag) AES hook interoperates with the Dart path', () async {
+    final aes = AesGcm.with256bits();
+    LanStream.nativeSeal = (k, n, d, a) async {
+      final b = await aes.encrypt(d, secretKey: SecretKey(k), nonce: n, aad: a);
+      return Uint8List.fromList([...b.cipherText, ...b.mac.bytes]);
+    };
+    final f = File('${tmp.path}${Platform.pathSeparator}n.bin')
+      ..writeAsBytesSync(List.generate(300000, (i) => i % 7));
+    final frames = await LanStream.sealFile('k', f).toList();
+    LanStream.nativeSeal = null;
+    final plain = await LanStream.open(
+      'k',
+      Stream.fromIterable(frames),
+    ).expand((c) => c).toList();
+    expect(plain.length, 300000);
+
+    LanStream.nativeOpen = (k, n, d, a) async {
+      final box = SecretBox(
+        d.sublist(0, d.length - 16),
+        nonce: n,
+        mac: Mac(d.sublist(d.length - 16)),
+      );
+      return Uint8List.fromList(
+        await aes.decrypt(box, secretKey: SecretKey(k), aad: a),
+      );
+    };
+    final dartFrames = await LanStream.sealFile('k', f).toList();
+    final p2 = await LanStream.open(
+      'k',
+      Stream.fromIterable(dartFrames),
+    ).expand((c) => c).toList();
+    LanStream.nativeOpen = null;
+    expect(p2.length, 300000);
   });
 }

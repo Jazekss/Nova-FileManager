@@ -3,9 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:image/image.dart' as img;
-
-import 'package:nova_link/nova_link.dart' show SafePath, PairingHost, PairCode;
+import 'package:nova_link/nova_link.dart'
+    show SafePath, PairingHost, PairCode, LanStream;
 
 import 'lan_crypto.dart';
 
@@ -49,6 +48,9 @@ class PairServer {
 
   /// Address the phone's last signed request came from.
   String? lastPhoneIp;
+
+  /// Thumbnail source (Windows Shell + image fallback), set by the UI.
+  Future<List<int>?> Function(String path)? thumbProvider;
 
   /// Set by "Disconnect" on the PC: a phone heartbeat within the next
   /// minute is answered with `unpair: true` (reaches phones that share
@@ -260,7 +262,8 @@ class PairServer {
     try {
       final base =
           Platform.environment['LOCALAPPDATA'] ?? Directory.systemTemp.path;
-      final dir = Directory('$base\\NovaTransfer')..createSync(recursive: true);
+      final dir = Directory('$base\\JKapps\\NovaTransfer')
+        ..createSync(recursive: true);
       File('${dir.path}\\nova_server.log')
           .writeAsStringSync('${DateTime.now()} $msg\n', mode: FileMode.append);
     } catch (_) {}
@@ -482,7 +485,9 @@ class PairServer {
       return;
     }
     // File contents are AES-256-GCM sealed for the paired phone only.
-    await _sealed(req, await f.readAsBytes());
+    // Streamed in sealed 256 KB frames — the event loop keeps serving
+    // heartbeats while a video goes out.
+    await LanStream.serveFile(req, _token, f);
   }
 
   /// Serves the currently shared APK as a forced download — used by the
@@ -514,26 +519,15 @@ class PairServer {
   /// type icons on the phone side).
   Future<void> _serveThumb(HttpRequest req) async {
     final path = req.uri.queryParameters['path'] ?? '';
-    final ext = path.toLowerCase().split('.').last;
-    const imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
-    if (!imgExts.contains(ext) || !_insideShare(path)) {
+    final b = _insideShare(path) && File(path).existsSync()
+        ? await thumbProvider?.call(path)
+        : null;
+    if (b == null) {
       req.response.statusCode = 204;
       await req.response.close();
       return;
     }
-    try {
-      final decoded = img.decodeImage(await File(path).readAsBytes());
-      if (decoded == null) throw 'decode';
-      final thumb = img.copyResize(
-        decoded,
-        width: decoded.width >= decoded.height ? 160 : null,
-        height: decoded.height > decoded.width ? 160 : null,
-      );
-      await _sealed(req, img.encodeJpg(thumb, quality: 80));
-    } catch (_) {
-      req.response.statusCode = 204;
-      await req.response.close();
-    }
+    await _sealed(req, b);
   }
 
   /// POST /api/rename {path, name} — renames a file inside a shared

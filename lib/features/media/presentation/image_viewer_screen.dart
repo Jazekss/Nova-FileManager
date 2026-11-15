@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/steady_page_physics.dart';
+
 /// Built-in image viewer: swipe between sibling images, pinch to zoom.
 class ImageViewerScreen extends StatefulWidget {
   const ImageViewerScreen({
@@ -29,6 +31,9 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
   /// While the current image is zoomed in, horizontal swipes pan the
   /// picture instead of flipping pages.
   bool _zoomed = false;
+
+  /// Two or more fingers down — pinch, never page.
+  bool _pinch = false;
 
   /// Per-page transform controllers — zoom state is tracked per image.
   final Map<int, TransformationController> _ctrls = {};
@@ -91,31 +96,48 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
             ),
         ],
       ),
-      body: PageView.builder(
-        controller: _pageCtrl,
-        physics: _zoomed ? const NeverScrollableScrollPhysics() : null,
-        itemCount: widget.images.length,
-        onPageChanged: (i) => setState(() {
-          _index = i;
-          _zoomed = false;
-        }),
-        itemBuilder: (context, i) => InteractiveViewer(
-          transformationController: _controllerFor(i),
-          child: GestureDetector(
-            // Long-press opens the same context menu as the "⋮" button.
-            onLongPress: widget.onActions == null
-                ? null
-                : () {
-                    Navigator.of(context).pop();
-                    widget.onActions!();
-                  },
-            child: Center(
-              child: Image.file(
-                File(widget.images[i]),
-                errorBuilder: (context, error, stack) => const Icon(
-                  Icons.broken_image_outlined,
-                  color: Colors.white54,
-                  size: 64,
+      body: PointerCounter(
+        onChanged: (n) {
+          final pinch = n > 1;
+          if (pinch == _pinch) return;
+          setState(() => _pinch = pinch);
+          // A second finger landed mid-swipe → settle back on this page.
+          if (pinch && _pageCtrl.hasClients) {
+            _pageCtrl.animateToPage(
+              _index,
+              duration: const Duration(milliseconds: 120),
+              curve: Curves.easeOut,
+            );
+          }
+        },
+        child: PageView.builder(
+          controller: _pageCtrl,
+          physics: _zoomed || _pinch
+              ? const NeverScrollableScrollPhysics()
+              : const SteadyPagePhysics(),
+          itemCount: widget.images.length,
+          onPageChanged: (i) => setState(() {
+            _index = i;
+            _zoomed = false;
+          }),
+          itemBuilder: (context, i) => InteractiveViewer(
+            transformationController: _controllerFor(i),
+            child: GestureDetector(
+              // Long-press opens the same context menu as the "⋮" button.
+              onLongPress: widget.onActions == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      widget.onActions!();
+                    },
+              child: Center(
+                child: Image.file(
+                  File(widget.images[i]),
+                  errorBuilder: (context, error, stack) => const Icon(
+                    Icons.broken_image_outlined,
+                    color: Colors.white54,
+                    size: 64,
+                  ),
                 ),
               ),
             ),

@@ -58,7 +58,6 @@ dependencies:
   cryptography: 2.7.0
   nova_link:
     path: packages/nova_link
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

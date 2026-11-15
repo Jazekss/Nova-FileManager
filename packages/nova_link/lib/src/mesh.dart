@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'lan_crypto.dart';
+import 'lan_stream.dart';
 import 'pairing.dart';
 import 'safe_path.dart';
 
@@ -673,10 +674,46 @@ class MeshNode {
         .toList();
   }
 
+  Future<http.StreamedResponse> _stream(MeshPeer p, String path) async {
+    if (p.host == null) throw const MeshError('offline');
+    final params = {'nonce': LanCrypto.nonce(), 'from': id, 'path': path};
+    final ts = LanCrypto.now() + (_skew[p.id] ?? 0);
+    final sig = LanCrypto.sign(p.key, 'GET', '/api/dl', ts, params);
+    final uri = Uri.parse(
+      '${_base(p.host!, p.port)}/api/dl',
+    ).replace(queryParameters: {...params, 'ts': '$ts', 'sig': sig});
+    final http.StreamedResponse res;
+    try {
+      res = await LanStream.get(uri, timeout: const Duration(seconds: 15));
+    } catch (_) {
+      throw const MeshError('offline');
+    }
+    if (res.statusCode == 403) throw const MeshError('denied');
+    if (res.statusCode != 200) throw const MeshError('failed');
+    p.lastSeen = DateTime.now();
+    return res;
+  }
+
+  /// Whole file in memory (previews).
   Future<Uint8List> download(MeshPeer p, String path) async {
-    final b = await _call(p, 'GET', '/api/dl', q: {'path': path}, timeout: 600);
-    if (b == null) throw const MeshError('failed');
-    return b;
+    try {
+      return await LanStream.readAll(p.key, await _stream(p, path));
+    } on MeshError {
+      rethrow;
+    } catch (_) {
+      throw const MeshError('failed');
+    }
+  }
+
+  /// Streams a file straight to disk.
+  Future<void> downloadTo(MeshPeer p, String path, File out) async {
+    try {
+      await LanStream.toFile(p.key, await _stream(p, path), out);
+    } on MeshError {
+      rethrow;
+    } catch (_) {
+      throw const MeshError('failed');
+    }
   }
 
   Future<Uint8List?> fetchThumb(MeshPeer p, String path) async {
@@ -741,7 +778,7 @@ class MeshNode {
           await _deny(req, 404);
           return;
         }
-        await _sendBytes(req, peer, await File(f).readAsBytes());
+        await LanStream.serveFile(req, peer.key, File(f));
       } else if (req.method == 'GET' && path == '/api/thumb') {
         final f = q['path'] ?? '';
         final b = SafePath.inside(f, roots) && File(f).existsSync()

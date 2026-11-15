@@ -2,6 +2,7 @@
 library;
 
 export 'src/lan_crypto.dart';
+export 'src/lan_stream.dart';
 export 'src/mesh.dart';
 export 'src/pairing.dart';
 export 'src/safe_path.dart';
