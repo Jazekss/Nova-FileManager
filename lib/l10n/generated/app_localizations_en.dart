@@ -589,4 +589,103 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Can\'t reach the PC. Make sure Nova Transfer is open, both devices are on the same Wi-Fi, and Windows Firewall allows Nova Transfer.';
+
+  @override
+  String get otherDevices => 'Other devices';
+
+  @override
+  String get otherDevicesHint =>
+      'Link your other computers and phones to move files fast. Nova must be open on both devices; paired devices reconnect by themselves.';
+
+  @override
+  String get thisDevice => 'This device';
+
+  @override
+  String get deviceName => 'Device name';
+
+  @override
+  String get devices => 'Devices';
+
+  @override
+  String get addDevice => 'Add device';
+
+  @override
+  String get pairCode => 'Code';
+
+  @override
+  String get deviceAddress => 'Address';
+
+  @override
+  String get pairCodeWrong => 'Wrong or expired code — check it and try again.';
+
+  @override
+  String get deviceUnreachable =>
+      'Can\'t reach the device. Is Nova open there and on the same Wi-Fi?';
+
+  @override
+  String get noDevices => 'No devices yet';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline — open Nova on it';
+
+  @override
+  String get deviceRejected => 'This device removed the pairing';
+
+  @override
+  String get removeDevice => 'Remove device';
+
+  @override
+  String get removeDeviceNote =>
+      'Both devices forget each other. To link them again you need a new code.';
+
+  @override
+  String get shareWith => 'Share with';
+
+  @override
+  String get shareAll => 'All paired devices';
+
+  @override
+  String get deviceOffline =>
+      'The device isn\'t answering — open Nova on it and keep it on the same Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Linked with $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Received from $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Extra computers and phones';
+
+  @override
+  String get scanOtherQr => 'Scan the other device\'s QR';
+
+  @override
+  String get showMyQr => 'Show this phone\'s QR';
+
+  @override
+  String get enterAddressCode => 'Enter address and code';
+
+  @override
+  String get pcAddress => 'PC address';
+
+  @override
+  String get myQrHint =>
+      'On the other device open Nova → Other devices → Add device, then scan this QR or type the address and code. The code works once.';
+
+  @override
+  String get sharedWithDevices => 'Shared from this phone';
+
+  @override
+  String get shareScopeAll => 'All devices';
+
+  @override
+  String get addShare => 'Share a folder or file';
 }

@@ -219,4 +219,133 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Телефон забудет этот компьютер, и QR-код придётся сканировать снова.';
+
+  @override
+  String get otherDevices => 'Другие устройства';
+
+  @override
+  String get otherDevicesHint =>
+      'Свяжите свои другие компьютеры и телефоны для быстрой передачи файлов. Nova должна быть открыта на обоих устройствах; сопряжённые устройства переподключаются сами.';
+
+  @override
+  String get thisDevice => 'Это устройство';
+
+  @override
+  String get deviceName => 'Имя устройства';
+
+  @override
+  String get devices => 'Устройства';
+
+  @override
+  String get addDevice => 'Добавить устройство';
+
+  @override
+  String get pairCode => 'Код';
+
+  @override
+  String get deviceAddress => 'Адрес';
+
+  @override
+  String get pairCodeWrong =>
+      'Неверный или устаревший код — проверьте и повторите.';
+
+  @override
+  String get deviceUnreachable =>
+      'Устройство недоступно. Открыта ли там Nova и в той же ли сети Wi-Fi?';
+
+  @override
+  String get noDevices => 'Устройств пока нет';
+
+  @override
+  String get online => 'В сети';
+
+  @override
+  String get offline => 'Не в сети — откройте на нём Nova';
+
+  @override
+  String get deviceRejected => 'Это устройство удалило сопряжение';
+
+  @override
+  String get removeDevice => 'Удалить устройство';
+
+  @override
+  String get removeDeviceNote =>
+      'Оба устройства забудут друг друга. Для повторного сопряжения нужен новый код.';
+
+  @override
+  String get shareWith => 'Открыть для';
+
+  @override
+  String get shareAll => 'Все сопряжённые устройства';
+
+  @override
+  String get deviceOffline =>
+      'Устройство не отвечает — откройте на нём Nova в той же сети Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Связано с $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Получено от $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Мой телефон';
+
+  @override
+  String get addByAddress => 'Добавить по адресу';
+
+  @override
+  String get pairOtherHint =>
+      'Телефон: Nova → Другие устройства → Добавить устройство → отсканируйте этот QR. Другой ПК: Другие устройства → Добавить по адресу и введите адрес и код.';
+
+  @override
+  String get shareOnlyPhone => 'Только мой телефон';
+
+  @override
+  String get shareSelected => 'Только выбранные ниже устройства';
+
+  @override
+  String get shareNote => 'Ваш телефон всегда видит все общие папки.';
+
+  @override
+  String get scopePhone => 'Телефон';
+
+  @override
+  String get scopeAll => 'Все';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count устр.';
+  }
+
+  @override
+  String get chooseFolder => 'Выбрать папку';
+
+  @override
+  String get add => 'Добавить';
+
+  @override
+  String get save => 'Сохранить';
+
+  @override
+  String get upload => 'Загрузить';
+
+  @override
+  String get manualPair => 'Нет камеры? Введите на телефоне';
+
+  @override
+  String get copy => 'Копировать';
+
+  @override
+  String get copied => 'Скопировано';
+
+  @override
+  String get codeOnce => 'Код одноразовый и меняется после использования.';
+
+  @override
+  String get pickTab => 'Двойной щелчок по вкладке — переименовать';
 }

@@ -219,4 +219,133 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Telefons aizmirsīs šo datoru, un QR kods būs jāskenē vēlreiz.';
+
+  @override
+  String get otherDevices => 'Citas ierīces';
+
+  @override
+  String get otherDevicesHint =>
+      'Savieno citus savus datorus un telefonus, lai ātri pārsūtītu failus. Nova jābūt atvērtai abās ierīcēs; savienotās ierīces atjauno savienojumu pašas.';
+
+  @override
+  String get thisDevice => 'Šī ierīce';
+
+  @override
+  String get deviceName => 'Ierīces nosaukums';
+
+  @override
+  String get devices => 'Ierīces';
+
+  @override
+  String get addDevice => 'Pievienot ierīci';
+
+  @override
+  String get pairCode => 'Kods';
+
+  @override
+  String get deviceAddress => 'Adrese';
+
+  @override
+  String get pairCodeWrong =>
+      'Nepareizs vai novecojis kods — pārbaudi un mēģini vēlreiz.';
+
+  @override
+  String get deviceUnreachable =>
+      'Nevar sasniegt ierīci. Vai tajā ir atvērta Nova un tā ir tajā pašā Wi-Fi?';
+
+  @override
+  String get noDevices => 'Vēl nav pievienotu ierīču';
+
+  @override
+  String get online => 'Tiešsaistē';
+
+  @override
+  String get offline => 'Nav tiešsaistē — atver tajā Nova';
+
+  @override
+  String get deviceRejected => 'Šī ierīce savienojumu ir noņēmusi';
+
+  @override
+  String get removeDevice => 'Noņemt ierīci';
+
+  @override
+  String get removeDeviceNote =>
+      'Abas ierīces aizmirsīs viena otru. Lai savienotu atkal, vajadzēs jaunu kodu.';
+
+  @override
+  String get shareWith => 'Dalīties ar';
+
+  @override
+  String get shareAll => 'Visām savienotajām ierīcēm';
+
+  @override
+  String get deviceOffline =>
+      'Ierīce neatbild — atver tajā Nova un esi tajā pašā Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Savienots ar $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Saņemts no $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Mans telefons';
+
+  @override
+  String get addByAddress => 'Pievienot pēc adreses';
+
+  @override
+  String get pairOtherHint =>
+      'Telefonā: Nova → Citas ierīces → Pievienot ierīci → noskenē šo QR. Citā datorā: Citas ierīces → Pievienot pēc adreses un ievadi adresi un kodu.';
+
+  @override
+  String get shareOnlyPhone => 'Tikai ar manu telefonu';
+
+  @override
+  String get shareSelected => 'Tikai ar zemāk izvēlētajām ierīcēm';
+
+  @override
+  String get shareNote => 'Tavs telefons vienmēr redz visas koplietotās mapes.';
+
+  @override
+  String get scopePhone => 'Telefons';
+
+  @override
+  String get scopeAll => 'Visi';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count ierīces';
+  }
+
+  @override
+  String get chooseFolder => 'Izvēlēties mapi';
+
+  @override
+  String get add => 'Pievienot';
+
+  @override
+  String get save => 'Saglabāt';
+
+  @override
+  String get upload => 'Augšupielādēt';
+
+  @override
+  String get manualPair => 'Nav kameras? Ievadi telefonā';
+
+  @override
+  String get copy => 'Kopēt';
+
+  @override
+  String get copied => 'Nokopēts';
+
+  @override
+  String get codeOnce => 'Kods derīgs vienu reizi un pēc lietošanas mainās.';
+
+  @override
+  String get pickTab => 'Dubultklikšķis uz cilnes — pārsaukt ierīci';
 }

@@ -220,4 +220,134 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Telefonas pamirš šį kompiuterį ir turės dar kartą nuskaityti QR kodą.';
+
+  @override
+  String get otherDevices => 'Kiti įrenginiai';
+
+  @override
+  String get otherDevicesHint =>
+      'Susiekite kitus kompiuterius ir telefonus, kad greitai perkeltumėte failus. Nova turi būti atidaryta abiejuose įrenginiuose; susieti įrenginiai prisijungia patys.';
+
+  @override
+  String get thisDevice => 'Šis įrenginys';
+
+  @override
+  String get deviceName => 'Įrenginio pavadinimas';
+
+  @override
+  String get devices => 'Įrenginiai';
+
+  @override
+  String get addDevice => 'Pridėti įrenginį';
+
+  @override
+  String get pairCode => 'Kodas';
+
+  @override
+  String get deviceAddress => 'Adresas';
+
+  @override
+  String get pairCodeWrong =>
+      'Neteisingas arba pasibaigęs kodas — patikrinkite ir bandykite dar kartą.';
+
+  @override
+  String get deviceUnreachable =>
+      'Nepavyksta pasiekti įrenginio. Ar jame atidaryta Nova ir jis tame pačiame Wi-Fi?';
+
+  @override
+  String get noDevices => 'Įrenginių dar nėra';
+
+  @override
+  String get online => 'Prisijungęs';
+
+  @override
+  String get offline => 'Neprisijungęs — atidarykite jame Nova';
+
+  @override
+  String get deviceRejected => 'Šis įrenginys pašalino susiejimą';
+
+  @override
+  String get removeDevice => 'Pašalinti įrenginį';
+
+  @override
+  String get removeDeviceNote =>
+      'Abu įrenginiai pamirš vienas kitą. Norint vėl susieti, reikės naujo kodo.';
+
+  @override
+  String get shareWith => 'Bendrinti su';
+
+  @override
+  String get shareAll => 'Visais susietais įrenginiais';
+
+  @override
+  String get deviceOffline =>
+      'Įrenginys neatsako — atidarykite jame Nova tame pačiame Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Susieta su $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Gauta iš $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Mano telefonas';
+
+  @override
+  String get addByAddress => 'Pridėti pagal adresą';
+
+  @override
+  String get pairOtherHint =>
+      'Telefone: Nova → Kiti įrenginiai → Pridėti įrenginį → nuskaitykite šį QR. Kitame kompiuteryje: Kiti įrenginiai → Pridėti pagal adresą ir įveskite adresą bei kodą.';
+
+  @override
+  String get shareOnlyPhone => 'Tik su mano telefonu';
+
+  @override
+  String get shareSelected => 'Tik su žemiau pasirinktais įrenginiais';
+
+  @override
+  String get shareNote =>
+      'Jūsų telefonas visada mato visus bendrinamus aplankus.';
+
+  @override
+  String get scopePhone => 'Telefonas';
+
+  @override
+  String get scopeAll => 'Visi';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count įreng.';
+  }
+
+  @override
+  String get chooseFolder => 'Pasirinkti aplanką';
+
+  @override
+  String get add => 'Pridėti';
+
+  @override
+  String get save => 'Išsaugoti';
+
+  @override
+  String get upload => 'Įkelti';
+
+  @override
+  String get manualPair => 'Nėra kameros? Įveskite telefone';
+
+  @override
+  String get copy => 'Kopijuoti';
+
+  @override
+  String get copied => 'Nukopijuota';
+
+  @override
+  String get codeOnce => 'Kodas veikia vieną kartą ir po naudojimo pasikeičia.';
+
+  @override
+  String get pickTab => 'Dukart spustelėkite skirtuką, kad pervadintumėte';
 }

@@ -1185,6 +1185,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Can\'t reach the PC. Make sure Nova Transfer is open, both devices are on the same Wi-Fi, and Windows Firewall allows Nova Transfer.'**
   String get pcUnreachableHint;
+
+  /// No description provided for @otherDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices'**
+  String get otherDevices;
+
+  /// No description provided for @otherDevicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Link your other computers and phones to move files fast. Nova must be open on both devices; paired devices reconnect by themselves.'**
+  String get otherDevicesHint;
+
+  /// No description provided for @thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get thisDevice;
+
+  /// No description provided for @deviceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get deviceName;
+
+  /// No description provided for @devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get devices;
+
+  /// No description provided for @addDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Add device'**
+  String get addDevice;
+
+  /// No description provided for @pairCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get pairCode;
+
+  /// No description provided for @deviceAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get deviceAddress;
+
+  /// No description provided for @pairCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong or expired code — check it and try again.'**
+  String get pairCodeWrong;
+
+  /// No description provided for @deviceUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the device. Is Nova open there and on the same Wi-Fi?'**
+  String get deviceUnreachable;
+
+  /// No description provided for @noDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices yet'**
+  String get noDevices;
+
+  /// No description provided for @online.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get online;
+
+  /// No description provided for @offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — open Nova on it'**
+  String get offline;
+
+  /// No description provided for @deviceRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'This device removed the pairing'**
+  String get deviceRejected;
+
+  /// No description provided for @removeDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove device'**
+  String get removeDevice;
+
+  /// No description provided for @removeDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Both devices forget each other. To link them again you need a new code.'**
+  String get removeDeviceNote;
+
+  /// No description provided for @shareWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with'**
+  String get shareWith;
+
+  /// No description provided for @shareAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All paired devices'**
+  String get shareAll;
+
+  /// No description provided for @deviceOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The device isn\'t answering — open Nova on it and keep it on the same Wi-Fi.'**
+  String get deviceOffline;
+
+  /// No description provided for @pairedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with {name}'**
+  String pairedWith(String name);
+
+  /// No description provided for @receivedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from {name}: {file}'**
+  String receivedFrom(String name, String file);
+
+  /// No description provided for @otherDevicesCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra computers and phones'**
+  String get otherDevicesCard;
+
+  /// No description provided for @scanOtherQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the other device\'s QR'**
+  String get scanOtherQr;
+
+  /// No description provided for @showMyQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this phone\'s QR'**
+  String get showMyQr;
+
+  /// No description provided for @enterAddressCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter address and code'**
+  String get enterAddressCode;
+
+  /// No description provided for @pcAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'PC address'**
+  String get pcAddress;
+
+  /// No description provided for @myQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On the other device open Nova → Other devices → Add device, then scan this QR or type the address and code. The code works once.'**
+  String get myQrHint;
+
+  /// No description provided for @sharedWithDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared from this phone'**
+  String get sharedWithDevices;
+
+  /// No description provided for @shareScopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All devices'**
+  String get shareScopeAll;
+
+  /// No description provided for @addShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a folder or file'**
+  String get addShare;
 }
 
 class _AppLocalizationsDelegate

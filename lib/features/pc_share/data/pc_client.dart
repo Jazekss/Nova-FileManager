@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:nova_link/nova_link.dart' show PairingHost, PairError;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/crypto/lan_crypto.dart';
@@ -94,6 +95,37 @@ class PcClient {
     await _save();
     await registerPhoneUrl(phoneUrl);
     return null;
+  }
+
+  /// Pairs by typed address (`192.168.1.5` or `192.168.1.5:48320`) and
+  /// the one-time code shown on the PC. Also accepts a full
+  /// `novapair://` link pasted into the address field.
+  Future<String?> pairWithCode(String address, String code) async {
+    final a = address.trim();
+    if (a.startsWith('novapair://') || a.startsWith('http')) return pair(a);
+    final m = RegExp(r'^([0-9]{1,3}(?:\.[0-9]{1,3}){3})(?::([0-9]{1,5}))?$')
+        .firstMatch(a);
+    if (m == null) return 'invalid_link';
+    final h = m.group(1)!;
+    final pt = int.tryParse(m.group(2) ?? '') ?? 48320;
+    try {
+      final r = await PairingHost.join(
+        host: h,
+        port: pt,
+        code: code,
+        myId: 'nova-phone-primary',
+        myName: 'Nova',
+        kind: 'phone',
+      );
+      final tok = '${r.extra['token'] ?? ''}';
+      if (tok.isEmpty) return 'rejected';
+      return await pair('novapair://$h:$pt/$tok');
+    } on PairError catch (e) {
+      return switch (e.code) {
+        'bad_code' || 'expired' || 'closed' || 'too_many' => 'bad_code',
+        _ => 'unreachable',
+      };
+    }
   }
 
   /// Finds the PC again: current host → QR fallback hosts (in parallel)

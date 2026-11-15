@@ -218,4 +218,132 @@ class AppLocalizationsNb extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Telefonen glemmer denne PC-en og må skanne QR-koden på nytt.';
+
+  @override
+  String get otherDevices => 'Andre enheter';
+
+  @override
+  String get otherDevicesHint =>
+      'Koble sammen andre datamaskiner og telefoner for å flytte filer raskt. Nova må være åpen på begge enhetene; parede enheter kobler til igjen selv.';
+
+  @override
+  String get thisDevice => 'Denne enheten';
+
+  @override
+  String get deviceName => 'Enhetsnavn';
+
+  @override
+  String get devices => 'Enheter';
+
+  @override
+  String get addDevice => 'Legg til enhet';
+
+  @override
+  String get pairCode => 'Kode';
+
+  @override
+  String get deviceAddress => 'Adresse';
+
+  @override
+  String get pairCodeWrong => 'Feil eller utløpt kode — sjekk og prøv igjen.';
+
+  @override
+  String get deviceUnreachable =>
+      'Får ikke kontakt med enheten. Er Nova åpen der og på samme Wi-Fi?';
+
+  @override
+  String get noDevices => 'Ingen enheter ennå';
+
+  @override
+  String get online => 'Tilkoblet';
+
+  @override
+  String get offline => 'Frakoblet — åpne Nova på den';
+
+  @override
+  String get deviceRejected => 'Denne enheten fjernet paringen';
+
+  @override
+  String get removeDevice => 'Fjern enhet';
+
+  @override
+  String get removeDeviceNote =>
+      'Begge enhetene glemmer hverandre. For å koble dem igjen trengs en ny kode.';
+
+  @override
+  String get shareWith => 'Del med';
+
+  @override
+  String get shareAll => 'Alle parede enheter';
+
+  @override
+  String get deviceOffline =>
+      'Enheten svarer ikke — åpne Nova på den på samme Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Koblet til $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Mottatt fra $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Min telefon';
+
+  @override
+  String get addByAddress => 'Legg til med adresse';
+
+  @override
+  String get pairOtherHint =>
+      'Telefon: Nova → Andre enheter → Legg til enhet → skann denne QR-koden. Annen PC: Andre enheter → Legg til med adresse, og skriv inn adresse og kode.';
+
+  @override
+  String get shareOnlyPhone => 'Bare min telefon';
+
+  @override
+  String get shareSelected => 'Bare enhetene valgt nedenfor';
+
+  @override
+  String get shareNote => 'Telefonen din ser alltid alle delte mapper.';
+
+  @override
+  String get scopePhone => 'Telefon';
+
+  @override
+  String get scopeAll => 'Alle';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count enheter';
+  }
+
+  @override
+  String get chooseFolder => 'Velg mappe';
+
+  @override
+  String get add => 'Legg til';
+
+  @override
+  String get save => 'Lagre';
+
+  @override
+  String get upload => 'Last opp';
+
+  @override
+  String get manualPair => 'Ikke kamera? Skriv på telefonen';
+
+  @override
+  String get copy => 'Kopier';
+
+  @override
+  String get copied => 'Kopiert';
+
+  @override
+  String get codeOnce => 'Koden virker én gang og endres etter bruk.';
+
+  @override
+  String get pickTab => 'Dobbeltklikk en fane for å gi nytt navn';
 }

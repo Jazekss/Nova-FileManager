@@ -588,4 +588,104 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Arvutiga ei saa ühendust. Veendu, et Nova Transfer on avatud, mõlemad seadmed on samas Wi-Fis ja Windowsi tulemüür lubab Nova Transferi.';
+
+  @override
+  String get otherDevices => 'Muud seadmed';
+
+  @override
+  String get otherDevicesHint =>
+      'Ühenda oma teised arvutid ja telefonid, et faile kiiresti liigutada. Nova peab olema avatud mõlemas seadmes; seotud seadmed ühenduvad ise uuesti.';
+
+  @override
+  String get thisDevice => 'See seade';
+
+  @override
+  String get deviceName => 'Seadme nimi';
+
+  @override
+  String get devices => 'Seadmed';
+
+  @override
+  String get addDevice => 'Lisa seade';
+
+  @override
+  String get pairCode => 'Kood';
+
+  @override
+  String get deviceAddress => 'Aadress';
+
+  @override
+  String get pairCodeWrong =>
+      'Vale või aegunud kood — kontrolli ja proovi uuesti.';
+
+  @override
+  String get deviceUnreachable =>
+      'Seadmega ei saa ühendust. Kas Nova on seal avatud ja samas Wi-Fis?';
+
+  @override
+  String get noDevices => 'Seadmeid veel pole';
+
+  @override
+  String get online => 'Võrgus';
+
+  @override
+  String get offline => 'Pole võrgus — ava seal Nova';
+
+  @override
+  String get deviceRejected => 'See seade eemaldas sidumise';
+
+  @override
+  String get removeDevice => 'Eemalda seade';
+
+  @override
+  String get removeDeviceNote =>
+      'Mõlemad seadmed unustavad teineteise. Uuesti sidumiseks on vaja uut koodi.';
+
+  @override
+  String get shareWith => 'Jaga';
+
+  @override
+  String get shareAll => 'Kõigi seotud seadmetega';
+
+  @override
+  String get deviceOffline =>
+      'Seade ei vasta — ava seal Nova samas Wi-Fi võrgus.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Seotud: $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Saadud seadmest $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Lisaarvutid ja -telefonid';
+
+  @override
+  String get scanOtherQr => 'Skanni teise seadme QR';
+
+  @override
+  String get showMyQr => 'Näita selle telefoni QR-i';
+
+  @override
+  String get enterAddressCode => 'Sisesta aadress ja kood';
+
+  @override
+  String get pcAddress => 'Arvuti aadress';
+
+  @override
+  String get myQrHint =>
+      'Ava teises seadmes Nova → Muud seadmed → Lisa seade, seejärel skanni see QR või sisesta aadress ja kood. Kood kehtib ühe korra.';
+
+  @override
+  String get sharedWithDevices => 'Sellest telefonist jagatud';
+
+  @override
+  String get shareScopeAll => 'Kõik seadmed';
+
+  @override
+  String get addShare => 'Jaga kausta või faili';
 }

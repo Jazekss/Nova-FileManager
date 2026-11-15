@@ -14,6 +14,7 @@ import '../../file_manager/application/file_browser_controller.dart';
 import '../../file_manager/presentation/widgets/browser_dialogs.dart';
 import '../../media/presentation/audio_player_screen.dart';
 import '../../media/presentation/video_player_screen.dart';
+import '../../devices/presentation/other_devices_screen.dart';
 import '../application/pc_link_service.dart';
 import '../data/pc_client.dart';
 
@@ -87,9 +88,14 @@ class _PcShareScreenState extends State<PcShareScreen> {
   /// reload the listing so the user never has to tap "Refresh".
   void _onLink() {
     if (!mounted) return;
-    if (_link.onlineEpoch != _epoch) {
-      _epoch = _link.onlineEpoch;
-      if (_client.isPaired) _refresh();
+    final back = _link.onlineEpoch != _epoch;
+    _epoch = _link.onlineEpoch;
+    // Link (re)established, or online again while an old error is
+    // still shown → reload so the error never sticks.
+    if (_client.isPaired &&
+        !_loading &&
+        (back || (_error != null && _link.status == PcLinkStatus.online))) {
+      _refresh();
     }
     setState(() {});
   }
@@ -105,12 +111,12 @@ class _PcShareScreenState extends State<PcShareScreen> {
 
   // --- Pairing ---
 
-  Future<void> _pairWith(String link) async {
+  Future<void> _pairWith(String link, {String? code}) async {
     setState(() {
       _loading = true;
       _error = null;
     });
-    final err = await _link.pair(link);
+    final err = await _link.pair(link, code: code);
     if (!mounted) return;
     if (err != null) {
       final tr = l10n(context);
@@ -118,8 +124,9 @@ class _PcShareScreenState extends State<PcShareScreen> {
         _loading = false;
         _error = switch (err) {
           'invalid_link' => tr.invalidPairLink,
+          'bad_code' => tr.pairCodeWrong,
           'rejected' => tr.pcRejected,
-          _ => tr.pcUnreachableHint,
+          _ => '${tr.pcUnreachableHint} ($link)',
         };
       });
       return;
@@ -134,30 +141,56 @@ class _PcShareScreenState extends State<PcShareScreen> {
     if (link != null) _pairWith(link);
   }
 
+  /// Address + one-time code shown on the PC (or a pasted full link).
   Future<void> _manualPair() async {
-    await showDialog<void>(
+    final codeCtl = TextEditingController();
+    final ok = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n(context).enterPairLink),
-        content: TextField(
-          controller: _linkController,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'novapair://…'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n(context).cancel),
+      builder: (context) {
+        final tr = l10n(context);
+        return AlertDialog(
+          title: Text(tr.enterPairLink),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _linkController,
+                autofocus: true,
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  labelText: tr.pcAddress,
+                  hintText: '192.168.1.10:48320',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: codeCtl,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: tr.pairCode,
+                  hintText: 'ABCD-EFGH-JKMN',
+                ),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n(context).pair),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(tr.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(tr.pair),
+            ),
+          ],
+        );
+      },
     );
     final link = _linkController.text.trim();
-    if (link.isNotEmpty) _pairWith(link);
+    final code = codeCtl.text.trim();
+    codeCtl.dispose();
+    if (ok != true || link.isEmpty) return;
+    _pairWith(link, code: link.startsWith('novapair://') ? null : code);
   }
 
   Future<void> _unpair() async {
@@ -968,6 +1001,16 @@ class _PcShareScreenState extends State<PcShareScreen> {
           )
         else
           for (final r in _link.shareRoots) _shareRootTile(r),
+        const Divider(height: 28),
+        ListTile(
+          leading: const Icon(Icons.devices_other_outlined),
+          title: Text(tr.otherDevices),
+          subtitle: Text(tr.otherDevicesCard),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const OtherDevicesScreen()),
+          ),
+        ),
       ],
     );
   }

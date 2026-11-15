@@ -7,6 +7,7 @@ import 'core/platform/storage_platform.dart';
 import 'core/settings/settings_controller.dart';
 import 'features/archive/data/archive_service.dart';
 import 'features/file_manager/application/file_browser_controller.dart';
+import 'features/devices/application/mesh_service.dart';
 import 'features/pc_share/application/pc_link_service.dart';
 import 'features/recycle_bin/application/recycle_bin_controller.dart';
 import 'features/recycle_bin/data/recycle_bin_service.dart';
@@ -39,6 +40,9 @@ Future<void> main() async {
   // app is enough to get back in touch with the paired desktop.
   final pcLink = PcLinkService();
   pcLink.init();
+  // Other devices (extra PCs/phones) — reconnect while Nova is open.
+  final mesh = MeshService();
+  mesh.init();
 
   runApp(
     MultiProvider(
@@ -58,6 +62,7 @@ Future<void> main() async {
         Provider<VaultService>.value(value: vaultService),
         Provider<DriveService>(create: (_) => DriveService()),
         ChangeNotifierProvider<PcLinkService>.value(value: pcLink),
+        ChangeNotifierProvider<MeshService>.value(value: mesh),
       ],
       child: const NovaApp(),
     ),

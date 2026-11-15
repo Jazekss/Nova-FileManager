@@ -6,6 +6,8 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 
+import 'package:nova_link/nova_link.dart' show SafePath;
+
 import '../../../core/crypto/lan_crypto.dart';
 import '../../pc_share/data/lan_discovery.dart';
 
@@ -88,14 +90,8 @@ class WifiShareServer {
 
   /// Absolute [path] must be a shared root or live under one — '/'-style
   /// separators throughout since Android paths always use them.
-  bool _insideRoots(String path) {
-    final p = path.replaceAll('\\', '/');
-    for (final root in _roots) {
-      final r = root.replaceAll('\\', '/');
-      if (p == r || p.startsWith('$r/')) return true;
-    }
-    return false;
-  }
+  /// '..' segments and symlinks can't escape the shared roots.
+  bool _insideRoots(String path) => SafePath.inside(path, _roots);
 
   /// Signed-request auth against this share session's token. The query
   /// string is part of the signature, and every (unique, nonce-carrying)
@@ -318,6 +314,26 @@ class WifiShareServer {
     await _seal(req, bytes);
   }
 
+  /// Thumbnail bytes for [path] (image, APK icon or video frame) or
+  /// null — shared with the multi-device mesh server.
+  static Future<List<int>?> thumbnailFor(String path) async {
+    final ext = path.toLowerCase().split('.').last;
+    try {
+      if (_imgExts.contains(ext)) {
+        return await Isolate.run(() => _makeImageThumb(path));
+      } else if (_apkExts.contains(ext)) {
+        return await _channel.invokeMethod<List<int>>('apkIcon', {
+          'path': path,
+        });
+      } else if (_videoExts.contains(ext)) {
+        return await _channel.invokeMethod<List<int>>('videoThumb', {
+          'path': path,
+        });
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Decode + resize inside a worker isolate.
   static List<int>? _makeImageThumb(String path) {
     final decoded = img.decodeImage(File(path).readAsBytesSync());
@@ -414,7 +430,11 @@ class WifiShareServer {
       final content = body.sublist(hEnd + 4, next - 2);
       final name = _fileName(headers);
       if (name != null && name.isNotEmpty) {
-        final safe = name.split('/').last.split('\\').last;
+        final safe = SafePath.safeFileName(name);
+        if (safe == null) {
+          pos = next;
+          continue;
+        }
         await File('${uploadDir.path}/$safe').writeAsBytes(content);
         onReceived?.call(safe);
       }

@@ -591,4 +591,104 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'PC nicht erreichbar. Prüfe, ob Nova Transfer geöffnet ist, beide Geräte im selben WLAN sind und die Windows-Firewall Nova Transfer erlaubt.';
+
+  @override
+  String get otherDevices => 'Andere Geräte';
+
+  @override
+  String get otherDevicesHint =>
+      'Verbinde deine anderen Computer und Telefone, um Dateien schnell zu übertragen. Nova muss auf beiden Geräten geöffnet sein; gekoppelte Geräte verbinden sich selbst neu.';
+
+  @override
+  String get thisDevice => 'Dieses Gerät';
+
+  @override
+  String get deviceName => 'Gerätename';
+
+  @override
+  String get devices => 'Geräte';
+
+  @override
+  String get addDevice => 'Gerät hinzufügen';
+
+  @override
+  String get pairCode => 'Code';
+
+  @override
+  String get deviceAddress => 'Adresse';
+
+  @override
+  String get pairCodeWrong =>
+      'Falscher oder abgelaufener Code – prüfe ihn und versuche es erneut.';
+
+  @override
+  String get deviceUnreachable =>
+      'Gerät nicht erreichbar. Ist Nova dort geöffnet und im selben WLAN?';
+
+  @override
+  String get noDevices => 'Noch keine Geräte';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline – öffne dort Nova';
+
+  @override
+  String get deviceRejected => 'Dieses Gerät hat die Kopplung entfernt';
+
+  @override
+  String get removeDevice => 'Gerät entfernen';
+
+  @override
+  String get removeDeviceNote =>
+      'Beide Geräte vergessen einander. Zum erneuten Koppeln ist ein neuer Code nötig.';
+
+  @override
+  String get shareWith => 'Teilen mit';
+
+  @override
+  String get shareAll => 'Alle gekoppelten Geräte';
+
+  @override
+  String get deviceOffline =>
+      'Gerät antwortet nicht – öffne dort Nova im selben WLAN.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Verbunden mit $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Empfangen von $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Weitere Computer und Telefone';
+
+  @override
+  String get scanOtherQr => 'QR des anderen Geräts scannen';
+
+  @override
+  String get showMyQr => 'QR dieses Telefons anzeigen';
+
+  @override
+  String get enterAddressCode => 'Adresse und Code eingeben';
+
+  @override
+  String get pcAddress => 'PC-Adresse';
+
+  @override
+  String get myQrHint =>
+      'Öffne auf dem anderen Gerät Nova → Andere Geräte → Gerät hinzufügen und scanne diesen QR oder gib Adresse und Code ein. Der Code gilt einmal.';
+
+  @override
+  String get sharedWithDevices => 'Von diesem Telefon geteilt';
+
+  @override
+  String get shareScopeAll => 'Alle Geräte';
+
+  @override
+  String get addShare => 'Ordner oder Datei teilen';
 }

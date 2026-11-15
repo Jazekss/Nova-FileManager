@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:nova_link/nova_link.dart' show PairingHost, PairError;
 import 'package:nova_transfer/lan_crypto.dart';
 import 'package:nova_transfer/server.dart';
 
@@ -25,9 +26,8 @@ void main() {
     final params = {'nonce': LanCrypto.nonce()};
     final ts = LanCrypto.now() + skew;
     final sig = LanCrypto.sign(token, method, path, ts, params);
-    return Uri.parse('http://127.0.0.1:${server.port}$path').replace(
-      queryParameters: {...params, 'ts': '$ts', 'sig': sig},
-    );
+    return Uri.parse('http://127.0.0.1:${server.port}$path')
+        .replace(queryParameters: {...params, 'ts': '$ts', 'sig': sig});
   }
 
   Future<Map<String, dynamic>> pair(String? url) async {
@@ -51,7 +51,9 @@ void main() {
     final reply = Completer<String>();
     sock.listen((e) {
       final dg = sock.receive();
-      if (dg != null && !reply.isCompleted) reply.complete(utf8.decode(dg.data));
+      if (dg != null && !reply.isCompleted) {
+        reply.complete(utf8.decode(dg.data));
+      }
     });
     sock.send(
       utf8.encode(LanCrypto.discoverProbe),
@@ -87,13 +89,41 @@ void main() {
     expect(server.phoneUrl, 'http://127.0.0.1:5555?k=abc');
   });
 
-  test('disconnect kicks the next heartbeat, fresh pairing clears it', () async {
-    server.kickPhone();
-    expect((await pair(null))['unpair'], isTrue);
-    expect((await pair(null))['unpair'], isNull);
+  test(
+    'disconnect kicks the next heartbeat, fresh pairing clears it',
+    () async {
+      server.kickPhone();
+      expect((await pair(null))['unpair'], isTrue);
+      expect((await pair(null))['unpair'], isNull);
 
-    server.kickPhone();
-    await http.get(signed('GET', '/api/info')); // re-pair probe
-    expect((await pair(null))['unpair'], isNull);
+      server.kickPhone();
+      await http.get(signed('GET', '/api/info')); // re-pair probe
+      expect((await pair(null))['unpair'], isNull);
+    },
+  );
+
+  test('manual address + code pairing hands over the token', () async {
+    final code = server.pairCode;
+    await expectLater(
+      PairingHost.join(
+        host: '127.0.0.1',
+        port: server.port,
+        code: 'AAAA-AAAA-AAAA',
+        myId: 'p',
+        myName: 'Phone',
+        kind: 'phone',
+      ),
+      throwsA(isA<PairError>()),
+    );
+    final r = await PairingHost.join(
+      host: '127.0.0.1',
+      port: server.port,
+      code: code,
+      myId: 'p',
+      myName: 'Phone',
+      kind: 'phone',
+    );
+    expect(r.extra['token'], token);
+    expect(server.pairCode, isNot(code)); // single use
   });
 }

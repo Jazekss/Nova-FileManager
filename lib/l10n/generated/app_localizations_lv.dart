@@ -588,4 +588,104 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Nevar sasniegt datoru. Pārliecinies, ka Nova Transfer ir atvērts, abas ierīces ir vienā Wi-Fi un Windows ugunsmūris atļauj Nova Transfer.';
+
+  @override
+  String get otherDevices => 'Citas ierīces';
+
+  @override
+  String get otherDevicesHint =>
+      'Savieno citus savus datorus un telefonus, lai ātri pārsūtītu failus. Nova jābūt atvērtai abās ierīcēs; savienotās ierīces atjauno savienojumu pašas.';
+
+  @override
+  String get thisDevice => 'Šī ierīce';
+
+  @override
+  String get deviceName => 'Ierīces nosaukums';
+
+  @override
+  String get devices => 'Ierīces';
+
+  @override
+  String get addDevice => 'Pievienot ierīci';
+
+  @override
+  String get pairCode => 'Kods';
+
+  @override
+  String get deviceAddress => 'Adrese';
+
+  @override
+  String get pairCodeWrong =>
+      'Nepareizs vai novecojis kods — pārbaudi un mēģini vēlreiz.';
+
+  @override
+  String get deviceUnreachable =>
+      'Nevar sasniegt ierīci. Vai tajā ir atvērta Nova un tā ir tajā pašā Wi-Fi?';
+
+  @override
+  String get noDevices => 'Vēl nav pievienotu ierīču';
+
+  @override
+  String get online => 'Tiešsaistē';
+
+  @override
+  String get offline => 'Nav tiešsaistē — atver tajā Nova';
+
+  @override
+  String get deviceRejected => 'Šī ierīce savienojumu ir noņēmusi';
+
+  @override
+  String get removeDevice => 'Noņemt ierīci';
+
+  @override
+  String get removeDeviceNote =>
+      'Abas ierīces aizmirsīs viena otru. Lai savienotu atkal, vajadzēs jaunu kodu.';
+
+  @override
+  String get shareWith => 'Dalīties ar';
+
+  @override
+  String get shareAll => 'Visām savienotajām ierīcēm';
+
+  @override
+  String get deviceOffline =>
+      'Ierīce neatbild — atver tajā Nova un esi tajā pašā Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Savienots ar $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Saņemts no $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Papildu datori un telefoni';
+
+  @override
+  String get scanOtherQr => 'Skenēt otras ierīces QR';
+
+  @override
+  String get showMyQr => 'Rādīt šī telefona QR';
+
+  @override
+  String get enterAddressCode => 'Ievadīt adresi un kodu';
+
+  @override
+  String get pcAddress => 'Datora adrese';
+
+  @override
+  String get myQrHint =>
+      'Otrā ierīcē atver Nova → Citas ierīces → Pievienot ierīci, tad noskenē šo QR vai ievadi adresi un kodu. Kods derīgs vienu reizi.';
+
+  @override
+  String get sharedWithDevices => 'Koplietots no šī telefona';
+
+  @override
+  String get shareScopeAll => 'Visas ierīces';
+
+  @override
+  String get addShare => 'Koplietot mapi vai failu';
 }

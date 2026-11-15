@@ -219,4 +219,133 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Das Telefon vergisst diesen PC und muss den QR-Code erneut scannen.';
+
+  @override
+  String get otherDevices => 'Andere Geräte';
+
+  @override
+  String get otherDevicesHint =>
+      'Verbinde deine anderen Computer und Telefone, um Dateien schnell zu übertragen. Nova muss auf beiden Geräten geöffnet sein; gekoppelte Geräte verbinden sich selbst neu.';
+
+  @override
+  String get thisDevice => 'Dieses Gerät';
+
+  @override
+  String get deviceName => 'Gerätename';
+
+  @override
+  String get devices => 'Geräte';
+
+  @override
+  String get addDevice => 'Gerät hinzufügen';
+
+  @override
+  String get pairCode => 'Code';
+
+  @override
+  String get deviceAddress => 'Adresse';
+
+  @override
+  String get pairCodeWrong =>
+      'Falscher oder abgelaufener Code – prüfe ihn und versuche es erneut.';
+
+  @override
+  String get deviceUnreachable =>
+      'Gerät nicht erreichbar. Ist Nova dort geöffnet und im selben WLAN?';
+
+  @override
+  String get noDevices => 'Noch keine Geräte';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline – öffne dort Nova';
+
+  @override
+  String get deviceRejected => 'Dieses Gerät hat die Kopplung entfernt';
+
+  @override
+  String get removeDevice => 'Gerät entfernen';
+
+  @override
+  String get removeDeviceNote =>
+      'Beide Geräte vergessen einander. Zum erneuten Koppeln ist ein neuer Code nötig.';
+
+  @override
+  String get shareWith => 'Teilen mit';
+
+  @override
+  String get shareAll => 'Alle gekoppelten Geräte';
+
+  @override
+  String get deviceOffline =>
+      'Gerät antwortet nicht – öffne dort Nova im selben WLAN.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Verbunden mit $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Empfangen von $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Mein Telefon';
+
+  @override
+  String get addByAddress => 'Per Adresse hinzufügen';
+
+  @override
+  String get pairOtherHint =>
+      'Telefon: Nova → Andere Geräte → Gerät hinzufügen → diesen QR scannen. Anderer PC: Andere Geräte → Per Adresse hinzufügen, dann Adresse und Code eingeben.';
+
+  @override
+  String get shareOnlyPhone => 'Nur mein Telefon';
+
+  @override
+  String get shareSelected => 'Nur die unten gewählten Geräte';
+
+  @override
+  String get shareNote => 'Dein Telefon sieht immer alle geteilten Ordner.';
+
+  @override
+  String get scopePhone => 'Telefon';
+
+  @override
+  String get scopeAll => 'Alle';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count Geräte';
+  }
+
+  @override
+  String get chooseFolder => 'Ordner wählen';
+
+  @override
+  String get add => 'Hinzufügen';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get upload => 'Hochladen';
+
+  @override
+  String get manualPair => 'Keine Kamera? Am Telefon eingeben';
+
+  @override
+  String get copy => 'Kopieren';
+
+  @override
+  String get copied => 'Kopiert';
+
+  @override
+  String get codeOnce => 'Der Code gilt einmal und ändert sich danach.';
+
+  @override
+  String get pickTab => 'Doppelklick auf einen Tab benennt das Gerät um';
 }

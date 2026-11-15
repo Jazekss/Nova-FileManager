@@ -219,4 +219,133 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get disconnectNote =>
       'Telefon unustab selle arvuti ja QR-kood tuleb uuesti skannida.';
+
+  @override
+  String get otherDevices => 'Muud seadmed';
+
+  @override
+  String get otherDevicesHint =>
+      'Ühenda oma teised arvutid ja telefonid, et faile kiiresti liigutada. Nova peab olema avatud mõlemas seadmes; seotud seadmed ühenduvad ise uuesti.';
+
+  @override
+  String get thisDevice => 'See seade';
+
+  @override
+  String get deviceName => 'Seadme nimi';
+
+  @override
+  String get devices => 'Seadmed';
+
+  @override
+  String get addDevice => 'Lisa seade';
+
+  @override
+  String get pairCode => 'Kood';
+
+  @override
+  String get deviceAddress => 'Aadress';
+
+  @override
+  String get pairCodeWrong =>
+      'Vale või aegunud kood — kontrolli ja proovi uuesti.';
+
+  @override
+  String get deviceUnreachable =>
+      'Seadmega ei saa ühendust. Kas Nova on seal avatud ja samas Wi-Fis?';
+
+  @override
+  String get noDevices => 'Seadmeid veel pole';
+
+  @override
+  String get online => 'Võrgus';
+
+  @override
+  String get offline => 'Pole võrgus — ava seal Nova';
+
+  @override
+  String get deviceRejected => 'See seade eemaldas sidumise';
+
+  @override
+  String get removeDevice => 'Eemalda seade';
+
+  @override
+  String get removeDeviceNote =>
+      'Mõlemad seadmed unustavad teineteise. Uuesti sidumiseks on vaja uut koodi.';
+
+  @override
+  String get shareWith => 'Jaga';
+
+  @override
+  String get shareAll => 'Kõigi seotud seadmetega';
+
+  @override
+  String get deviceOffline =>
+      'Seade ei vasta — ava seal Nova samas Wi-Fi võrgus.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Seotud: $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Saadud seadmest $name: $file';
+  }
+
+  @override
+  String get myPhone => 'Minu telefon';
+
+  @override
+  String get addByAddress => 'Lisa aadressi järgi';
+
+  @override
+  String get pairOtherHint =>
+      'Telefonis: Nova → Muud seadmed → Lisa seade → skanni see QR. Teises arvutis: Muud seadmed → Lisa aadressi järgi ning sisesta aadress ja kood.';
+
+  @override
+  String get shareOnlyPhone => 'Ainult minu telefoniga';
+
+  @override
+  String get shareSelected => 'Ainult allpool valitud seadmetega';
+
+  @override
+  String get shareNote => 'Sinu telefon näeb alati kõiki jagatud kaustu.';
+
+  @override
+  String get scopePhone => 'Telefon';
+
+  @override
+  String get scopeAll => 'Kõik';
+
+  @override
+  String scopeSome(int count) {
+    return '+$count seadet';
+  }
+
+  @override
+  String get chooseFolder => 'Vali kaust';
+
+  @override
+  String get add => 'Lisa';
+
+  @override
+  String get save => 'Salvesta';
+
+  @override
+  String get upload => 'Laadi üles';
+
+  @override
+  String get manualPair => 'Kaamerat pole? Sisesta telefonis';
+
+  @override
+  String get copy => 'Kopeeri';
+
+  @override
+  String get copied => 'Kopeeritud';
+
+  @override
+  String get codeOnce => 'Kood kehtib ühe korra ja muutub pärast kasutamist.';
+
+  @override
+  String get pickTab => 'Topeltklõps sakil nimetab seadme ümber';
 }

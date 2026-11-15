@@ -14,6 +14,10 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:nova_link/nova_link.dart' show MeshNode;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'devices.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'firewall.dart';
 import 'lan_crypto.dart';
@@ -22,7 +26,7 @@ import 'settings.dart';
 
 const _coffeeUrl = 'https://www.buymeacoffee.com/jazeks';
 const _devUrl = 'https://jkdizains.lv';
-const _appVersion = '1.0.0';
+const _appVersion = '1.1.0';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -213,7 +217,8 @@ class _DesktopHomeState extends State<DesktopHome> {
   bool _fwFixing = false;
 
   _PhoneState get _phoneState {
-    if (_phoneUrl != null && _phoneOk) return _PhoneState.online;
+    // Only a fresh heartbeat from the phone counts — a listing that
+    // succeeded minutes ago used to keep showing "connected".
     if (_server.phoneOnline) return _PhoneState.online;
     if (_phoneUrl != null) return _PhoneState.reconnecting;
     return _PhoneState.waiting;
@@ -231,6 +236,31 @@ class _DesktopHomeState extends State<DesktopHome> {
 
   /// Path of the phone file whose ⋮ menu is open (gets a soft outline).
   String? _menuPath;
+
+  /// Other devices (extra phones/PCs). Each sees only the folders whose
+  /// scope includes it; "my phone" keeps seeing every folder.
+  late final MeshNode _mesh = MeshNode(
+    kind: 'pc',
+    preferredPort: 48330,
+    load: () async =>
+        (await SharedPreferences.getInstance()).getString('mesh_v1'),
+    save: (j) async =>
+        (await SharedPreferences.getInstance()).setString('mesh_v1', j),
+    rootsFor: (peer) {
+      final st = context.read<DesktopSettings>();
+      return st.sharedFolders.where((f) => st.sharedWith(f, peer.id)).toList();
+    },
+    thumb: desktopThumb,
+    onReceived: (path, from) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${from.name} → $path')));
+    },
+  );
+  StreamSubscription<void>? _meshSub;
+
+  /// Selected right-panel tab: null = my phone, else a mesh peer id.
+  String? _tab;
 
   @override
   void initState() {
@@ -255,6 +285,21 @@ class _DesktopHomeState extends State<DesktopHome> {
     // unreachable phone and fresh PC addresses for the QR.
     _poll = Timer.periodic(const Duration(seconds: 4), (_) => _checkPhone());
     _checkFirewall();
+    _server.onCodeChanged = () {
+      if (mounted) setState(() {});
+    };
+    _meshSub = _mesh.changes.listen((_) {
+      if (!mounted) return;
+      if (_tab != null && _mesh.peerById(_tab!) == null) _tab = null;
+      setState(() {});
+    });
+    _mesh
+        .init(defaultName: Platform.localHostname)
+        .then((_) => _mesh.start())
+        .then((_) {
+          if (mounted) setState(() {});
+        })
+        .catchError((_) {});
   }
 
   Future<void> _checkFirewall() async {
@@ -275,6 +320,8 @@ class _DesktopHomeState extends State<DesktopHome> {
   @override
   void dispose() {
     _poll?.cancel();
+    _meshSub?.cancel();
+    _mesh.dispose();
     _server.stop();
     super.dispose();
   }
@@ -860,23 +907,44 @@ class _DesktopHomeState extends State<DesktopHome> {
     if (mounted) context.read<DesktopSettings>().setPhoneUrl(null);
   }
 
+  /// Folder + who may see it (only my phone / all devices / picked).
   Future<void> _addFolder() async {
-    final dir = await FilePickerPlatform.instance.getDirectoryPath(
-      dialogTitle: tr(context).addFolder,
-    );
-    if (dir == null || !mounted) return;
+    final res = await showShareFolderDialog(context, peers: _mesh.peers);
+    if (res == null || !mounted) return;
+    final (dir, scope) = res;
     final settings = context.read<DesktopSettings>();
     final list = [..._server.sharedRoots];
     if (!list.contains(dir)) list.add(dir);
     _server.sharedRoots = list;
     await settings.setSharedFolders(list);
+    await settings.setScope(dir, scope);
     if (mounted) setState(() {});
+  }
+
+  Future<void> _editScope(String path) async {
+    final settings = context.read<DesktopSettings>();
+    final res = await showShareFolderDialog(
+      context,
+      peers: _mesh.peers,
+      path: path,
+      scope: settings.scopeOf(path),
+    );
+    if (res != null) await settings.setScope(path, res.$2);
+  }
+
+  void _showDevices() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => DevicesDialog(node: _mesh),
+    );
   }
 
   Future<void> _removeFolder(String path) async {
     final list = [..._server.sharedRoots]..remove(path);
     _server.sharedRoots = list;
-    await context.read<DesktopSettings>().setSharedFolders(list);
+    final settings = context.read<DesktopSettings>();
+    await settings.setSharedFolders(list);
+    await settings.setScope(path, null);
     setState(() {});
   }
 
@@ -1156,8 +1224,12 @@ class _DesktopHomeState extends State<DesktopHome> {
             onStatusTap: state == _PhoneState.online
                 ? _confirmDisconnect
                 : _showConnectionDialog,
+            devicesOnline: _mesh.peers.where((p) => p.online).length,
+            devicesTotal: _mesh.peers.length,
+            onDevices: _showDevices,
             onMenu: (v) {
               if (v == 'connection') _showConnectionDialog();
+              if (v == 'devices') _showDevices();
               if (v == 'apk') _showApkQrDialog();
               if (v == 'settings') _showSettings();
               if (v == 'coffee') launchUrl(Uri.parse(_coffeeUrl));
@@ -1177,6 +1249,8 @@ class _DesktopHomeState extends State<DesktopHome> {
                       clipBehavior: Clip.antiAlias,
                       child: _PcPanel(
                         folders: settings.sharedFolders,
+                        scopeOf: settings.scopeOf,
+                        onScope: _editScope,
                         onAdd: _addFolder,
                         onRemove: _removeFolder,
                       ),
@@ -1193,69 +1267,101 @@ class _DesktopHomeState extends State<DesktopHome> {
                   Expanded(
                     child: Card(
                       clipBehavior: Clip.antiAlias,
-                      child: _phoneUrl == null
-                          ? (state == _PhoneState.online
-                                ? _PhoneIdlePane()
-                                : Center(
-                                    child: SingleChildScrollView(
-                                      padding: const EdgeInsets.all(24),
-                                      child: SizedBox(
-                                        width: 380,
-                                        child: _ConnectPane(
-                                          server: _server,
-                                          firewall: _fw,
-                                          fixingFirewall: _fwFixing,
-                                          onFixFirewall: _fixFirewall,
-                                        ),
-                                      ),
-                                    ),
-                                  ))
-                          : _PhonePanel(
-                              connected: true,
-                              reconnecting: !_phoneOk,
-                              onShowQr: _showConnectionDialog,
-                              files: _phoneFiles,
-                              error: _phoneError,
-                              thumbs: settings.showThumbs,
-                              viewMode: settings.viewMode,
-                              menuPath: _menuPath,
-                              crumbs: _phoneCrumbs,
-                              selected: _sel,
-                              managePhone: settings.managePhone,
-                              sortField: settings.phoneSortField,
-                              sortAsc: settings.phoneSortAsc,
-                              onSort: (f, asc) => context
-                                  .read<DesktopSettings>()
-                                  .setPhoneSort(f, asc),
-                              fetchThumb: _phoneThumb,
-                              onViewMode: (m) => context
-                                  .read<DesktopSettings>()
-                                  .setViewMode(m),
-                              onMenuOpen: (p) => setState(() => _menuPath = p),
-                              onOpenDir: (d) {
-                                _phoneCrumbs.add(d);
-                                _refreshPhoneList();
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (_mesh.peers.isNotEmpty) ...[
+                            DeviceTabs(
+                              peers: _mesh.peers,
+                              selected: _tab,
+                              phoneOnline: state == _PhoneState.online,
+                              onSelect: (id) => setState(() => _tab = id),
+                              onRename: (p) async {
+                                final v = await renameDeviceDialog(
+                                  context,
+                                  p.name,
+                                );
+                                if (v != null) await _mesh.rename(p, v);
                               },
-                              onUp: _phoneCrumbs.isEmpty
-                                  ? null
-                                  : () {
-                                      _phoneCrumbs.removeLast();
+                            ),
+                            const Divider(),
+                          ],
+                          Expanded(
+                            child: _tab != null && _mesh.peerById(_tab!) != null
+                                ? PeerPanel(
+                                    key: ValueKey(_tab),
+                                    node: _mesh,
+                                    peer: _mesh.peerById(_tab!)!,
+                                    thumbs: settings.showThumbs,
+                                  )
+                                : _phoneUrl == null
+                                ? (state == _PhoneState.online
+                                      ? _PhoneIdlePane()
+                                      : Center(
+                                          child: SingleChildScrollView(
+                                            padding: const EdgeInsets.all(24),
+                                            child: SizedBox(
+                                              width: 380,
+                                              child: _ConnectPane(
+                                                server: _server,
+                                                firewall: _fw,
+                                                fixingFirewall: _fwFixing,
+                                                onFixFirewall: _fixFirewall,
+                                              ),
+                                            ),
+                                          ),
+                                        ))
+                                : _PhonePanel(
+                                    connected: true,
+                                    reconnecting:
+                                        !_phoneOk || !_server.phoneOnline,
+                                    onShowQr: _showConnectionDialog,
+                                    files: _phoneFiles,
+                                    error: _phoneError,
+                                    thumbs: settings.showThumbs,
+                                    viewMode: settings.viewMode,
+                                    menuPath: _menuPath,
+                                    crumbs: _phoneCrumbs,
+                                    selected: _sel,
+                                    managePhone: settings.managePhone,
+                                    sortField: settings.phoneSortField,
+                                    sortAsc: settings.phoneSortAsc,
+                                    onSort: (f, asc) => context
+                                        .read<DesktopSettings>()
+                                        .setPhoneSort(f, asc),
+                                    fetchThumb: _phoneThumb,
+                                    onViewMode: (m) => context
+                                        .read<DesktopSettings>()
+                                        .setViewMode(m),
+                                    onMenuOpen: (p) =>
+                                        setState(() => _menuPath = p),
+                                    onOpenDir: (d) {
+                                      _phoneCrumbs.add(d);
                                       _refreshPhoneList();
                                     },
-                              onPreview: _previewPhoneFile,
-                              onRename: _renamePhoneFile,
-                              onDelete: _deletePhoneFile,
-                              onToggleSelect: (f) => setState(
-                                () => _sel.contains(f.path)
-                                    ? _sel.remove(f.path)
-                                    : _sel.add(f.path),
-                              ),
-                              onDownloadSelected: _downloadSelected,
-                              onDeleteSelected: _deleteSelected,
-                              onRefresh: _refreshPhoneList,
-                              onDownload: _downloadPhoneFile,
-                              onDisconnect: _confirmDisconnect,
-                            ),
+                                    onUp: _phoneCrumbs.isEmpty
+                                        ? null
+                                        : () {
+                                            _phoneCrumbs.removeLast();
+                                            _refreshPhoneList();
+                                          },
+                                    onPreview: _previewPhoneFile,
+                                    onRename: _renamePhoneFile,
+                                    onDelete: _deletePhoneFile,
+                                    onToggleSelect: (f) => setState(
+                                      () => _sel.contains(f.path)
+                                          ? _sel.remove(f.path)
+                                          : _sel.add(f.path),
+                                    ),
+                                    onDownloadSelected: _downloadSelected,
+                                    onDeleteSelected: _deleteSelected,
+                                    onRefresh: _refreshPhoneList,
+                                    onDownload: _downloadPhoneFile,
+                                    onDisconnect: _confirmDisconnect,
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1275,11 +1381,17 @@ class _Header extends StatelessWidget {
     required this.phoneIp,
     required this.onStatusTap,
     required this.onMenu,
+    required this.devicesOnline,
+    required this.devicesTotal,
+    required this.onDevices,
   });
 
   final _PhoneState state;
   final String? phoneIp;
   final VoidCallback onStatusTap;
+  final int devicesOnline;
+  final int devicesTotal;
+  final VoidCallback onDevices;
   final void Function(String) onMenu;
 
   @override
@@ -1308,13 +1420,26 @@ class _Header extends StatelessWidget {
             state: state,
             label: switch (state) {
               _PhoneState.online =>
-                phoneIp == null
-                    ? t.phoneConnected
-                    : '${t.phoneConnected} · $phoneIp',
-              _PhoneState.reconnecting => t.statusReconnecting,
-              _PhoneState.waiting => t.statusWaiting,
+                phoneIp == null ? t.myPhone : '${t.myPhone} · $phoneIp',
+              _PhoneState.reconnecting =>
+                '${t.myPhone} · ${t.statusReconnecting}',
+              _PhoneState.waiting => '${t.myPhone} · ${t.statusWaiting}',
             },
             onTap: onStatusTap,
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              shape: const StadiumBorder(),
+              visualDensity: VisualDensity.compact,
+            ),
+            icon: const Icon(Icons.devices_other, size: 16),
+            label: Text(
+              devicesTotal == 0
+                  ? t.otherDevices
+                  : '${t.otherDevices} · $devicesOnline/$devicesTotal',
+            ),
+            onPressed: onDevices,
           ),
           const SizedBox(width: 4),
           PopupMenuButton<String>(
@@ -1323,6 +1448,7 @@ class _Header extends StatelessWidget {
             onSelected: onMenu,
             itemBuilder: (context) => [
               item('connection', Icons.qr_code_2, t.connection),
+              item('devices', Icons.devices_other, t.otherDevices),
               item('apk', Icons.android, t.shareApk),
               item('settings', Icons.tune, t.settings),
               const PopupMenuDivider(),
@@ -1578,6 +1704,15 @@ class _ConnectPane extends StatelessWidget {
         const SizedBox(height: 16),
         step(1, t.connectStep1),
         step(2, t.connectStep2),
+        const SizedBox(height: 6),
+        Text(t.manualPair, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 6),
+        CodeBox(
+          address: server.ip == null ? null : '${server.ip}:${server.port}',
+          code: server.pairCode,
+        ),
+        const SizedBox(height: 4),
+        Text(t.codeOnce, style: small),
         const SizedBox(height: 4),
         Text(t.connectAuto, style: small, textAlign: TextAlign.center),
         const SizedBox(height: 14),
@@ -1679,11 +1814,15 @@ class _PhoneIdlePane extends StatelessWidget {
 class _PcPanel extends StatelessWidget {
   const _PcPanel({
     required this.folders,
+    required this.scopeOf,
+    required this.onScope,
     required this.onAdd,
     required this.onRemove,
   });
 
   final List<String> folders;
+  final String Function(String) scopeOf;
+  final void Function(String) onScope;
   final VoidCallback onAdd;
   final void Function(String) onRemove;
 
@@ -1757,7 +1896,15 @@ class _PcPanel extends StatelessWidget {
                         color: scheme.primary,
                         size: 22,
                       ),
-                      title: Text(name, overflow: TextOverflow.ellipsis),
+                      title: Row(
+                        children: [
+                          Flexible(
+                            child: Text(name, overflow: TextOverflow.ellipsis),
+                          ),
+                          const SizedBox(width: 6),
+                          ScopeChip(scope: scopeOf(f), onTap: () => onScope(f)),
+                        ],
+                      ),
                       subtitle: Text(
                         f,
                         overflow: TextOverflow.ellipsis,

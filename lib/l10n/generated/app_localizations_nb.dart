@@ -588,4 +588,103 @@ class AppLocalizationsNb extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Får ikke kontakt med PC-en. Sjekk at Nova Transfer er åpen, at begge enhetene er på samme Wi-Fi og at Windows-brannmuren tillater Nova Transfer.';
+
+  @override
+  String get otherDevices => 'Andre enheter';
+
+  @override
+  String get otherDevicesHint =>
+      'Koble sammen andre datamaskiner og telefoner for å flytte filer raskt. Nova må være åpen på begge enhetene; parede enheter kobler til igjen selv.';
+
+  @override
+  String get thisDevice => 'Denne enheten';
+
+  @override
+  String get deviceName => 'Enhetsnavn';
+
+  @override
+  String get devices => 'Enheter';
+
+  @override
+  String get addDevice => 'Legg til enhet';
+
+  @override
+  String get pairCode => 'Kode';
+
+  @override
+  String get deviceAddress => 'Adresse';
+
+  @override
+  String get pairCodeWrong => 'Feil eller utløpt kode — sjekk og prøv igjen.';
+
+  @override
+  String get deviceUnreachable =>
+      'Får ikke kontakt med enheten. Er Nova åpen der og på samme Wi-Fi?';
+
+  @override
+  String get noDevices => 'Ingen enheter ennå';
+
+  @override
+  String get online => 'Tilkoblet';
+
+  @override
+  String get offline => 'Frakoblet — åpne Nova på den';
+
+  @override
+  String get deviceRejected => 'Denne enheten fjernet paringen';
+
+  @override
+  String get removeDevice => 'Fjern enhet';
+
+  @override
+  String get removeDeviceNote =>
+      'Begge enhetene glemmer hverandre. For å koble dem igjen trengs en ny kode.';
+
+  @override
+  String get shareWith => 'Del med';
+
+  @override
+  String get shareAll => 'Alle parede enheter';
+
+  @override
+  String get deviceOffline =>
+      'Enheten svarer ikke — åpne Nova på den på samme Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Koblet til $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Mottatt fra $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Ekstra datamaskiner og telefoner';
+
+  @override
+  String get scanOtherQr => 'Skann QR-koden på den andre enheten';
+
+  @override
+  String get showMyQr => 'Vis QR-koden til denne telefonen';
+
+  @override
+  String get enterAddressCode => 'Skriv inn adresse og kode';
+
+  @override
+  String get pcAddress => 'PC-adresse';
+
+  @override
+  String get myQrHint =>
+      'På den andre enheten: åpne Nova → Andre enheter → Legg til enhet, og skann denne QR-koden eller skriv inn adresse og kode. Koden virker én gang.';
+
+  @override
+  String get sharedWithDevices => 'Delt fra denne telefonen';
+
+  @override
+  String get shareScopeAll => 'Alle enheter';
+
+  @override
+  String get addShare => 'Del en mappe eller fil';
 }

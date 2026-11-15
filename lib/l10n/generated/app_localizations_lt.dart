@@ -590,4 +590,104 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Nepavyksta pasiekti kompiuterio. Įsitikinkite, kad Nova Transfer atidaryta, abu įrenginiai tame pačiame Wi-Fi, o Windows užkarda leidžia Nova Transfer.';
+
+  @override
+  String get otherDevices => 'Kiti įrenginiai';
+
+  @override
+  String get otherDevicesHint =>
+      'Susiekite kitus kompiuterius ir telefonus, kad greitai perkeltumėte failus. Nova turi būti atidaryta abiejuose įrenginiuose; susieti įrenginiai prisijungia patys.';
+
+  @override
+  String get thisDevice => 'Šis įrenginys';
+
+  @override
+  String get deviceName => 'Įrenginio pavadinimas';
+
+  @override
+  String get devices => 'Įrenginiai';
+
+  @override
+  String get addDevice => 'Pridėti įrenginį';
+
+  @override
+  String get pairCode => 'Kodas';
+
+  @override
+  String get deviceAddress => 'Adresas';
+
+  @override
+  String get pairCodeWrong =>
+      'Neteisingas arba pasibaigęs kodas — patikrinkite ir bandykite dar kartą.';
+
+  @override
+  String get deviceUnreachable =>
+      'Nepavyksta pasiekti įrenginio. Ar jame atidaryta Nova ir jis tame pačiame Wi-Fi?';
+
+  @override
+  String get noDevices => 'Įrenginių dar nėra';
+
+  @override
+  String get online => 'Prisijungęs';
+
+  @override
+  String get offline => 'Neprisijungęs — atidarykite jame Nova';
+
+  @override
+  String get deviceRejected => 'Šis įrenginys pašalino susiejimą';
+
+  @override
+  String get removeDevice => 'Pašalinti įrenginį';
+
+  @override
+  String get removeDeviceNote =>
+      'Abu įrenginiai pamirš vienas kitą. Norint vėl susieti, reikės naujo kodo.';
+
+  @override
+  String get shareWith => 'Bendrinti su';
+
+  @override
+  String get shareAll => 'Visais susietais įrenginiais';
+
+  @override
+  String get deviceOffline =>
+      'Įrenginys neatsako — atidarykite jame Nova tame pačiame Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Susieta su $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Gauta iš $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Papildomi kompiuteriai ir telefonai';
+
+  @override
+  String get scanOtherQr => 'Nuskaityti kito įrenginio QR';
+
+  @override
+  String get showMyQr => 'Rodyti šio telefono QR';
+
+  @override
+  String get enterAddressCode => 'Įvesti adresą ir kodą';
+
+  @override
+  String get pcAddress => 'Kompiuterio adresas';
+
+  @override
+  String get myQrHint =>
+      'Kitame įrenginyje atidarykite Nova → Kiti įrenginiai → Pridėti įrenginį, tada nuskaitykite šį QR arba įveskite adresą ir kodą. Kodas veikia vieną kartą.';
+
+  @override
+  String get sharedWithDevices => 'Bendrinama iš šio telefono';
+
+  @override
+  String get shareScopeAll => 'Visi įrenginiai';
+
+  @override
+  String get addShare => 'Bendrinti aplanką ar failą';
 }

@@ -507,6 +507,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The phone will forget this PC and must scan the QR code again.'**
   String get disconnectNote;
+
+  /// No description provided for @otherDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices'**
+  String get otherDevices;
+
+  /// No description provided for @otherDevicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Link your other computers and phones to move files fast. Nova must be open on both devices; paired devices reconnect by themselves.'**
+  String get otherDevicesHint;
+
+  /// No description provided for @thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get thisDevice;
+
+  /// No description provided for @deviceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get deviceName;
+
+  /// No description provided for @devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get devices;
+
+  /// No description provided for @addDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Add device'**
+  String get addDevice;
+
+  /// No description provided for @pairCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get pairCode;
+
+  /// No description provided for @deviceAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get deviceAddress;
+
+  /// No description provided for @pairCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong or expired code — check it and try again.'**
+  String get pairCodeWrong;
+
+  /// No description provided for @deviceUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the device. Is Nova open there and on the same Wi-Fi?'**
+  String get deviceUnreachable;
+
+  /// No description provided for @noDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices yet'**
+  String get noDevices;
+
+  /// No description provided for @online.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get online;
+
+  /// No description provided for @offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — open Nova on it'**
+  String get offline;
+
+  /// No description provided for @deviceRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'This device removed the pairing'**
+  String get deviceRejected;
+
+  /// No description provided for @removeDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove device'**
+  String get removeDevice;
+
+  /// No description provided for @removeDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Both devices forget each other. To link them again you need a new code.'**
+  String get removeDeviceNote;
+
+  /// No description provided for @shareWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with'**
+  String get shareWith;
+
+  /// No description provided for @shareAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All paired devices'**
+  String get shareAll;
+
+  /// No description provided for @deviceOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The device isn\'t answering — open Nova on it and keep it on the same Wi-Fi.'**
+  String get deviceOffline;
+
+  /// No description provided for @pairedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with {name}'**
+  String pairedWith(String name);
+
+  /// No description provided for @receivedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from {name}: {file}'**
+  String receivedFrom(String name, String file);
+
+  /// No description provided for @myPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'My phone'**
+  String get myPhone;
+
+  /// No description provided for @addByAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add by address'**
+  String get addByAddress;
+
+  /// No description provided for @pairOtherHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone: Nova → Other devices → Add device → scan this QR. Other PC: Other devices → Add by address, then type the address and code.'**
+  String get pairOtherHint;
+
+  /// No description provided for @shareOnlyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Only my phone'**
+  String get shareOnlyPhone;
+
+  /// No description provided for @shareSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the devices picked below'**
+  String get shareSelected;
+
+  /// No description provided for @shareNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone always sees every shared folder.'**
+  String get shareNote;
+
+  /// No description provided for @scopePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get scopePhone;
+
+  /// No description provided for @scopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get scopeAll;
+
+  /// No description provided for @scopeSome.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} devices'**
+  String scopeSome(int count);
+
+  /// No description provided for @chooseFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get chooseFolder;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get upload;
+
+  /// No description provided for @manualPair.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera? Type on the phone'**
+  String get manualPair;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
+
+  /// No description provided for @codeOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'The code works once and changes after use.'**
+  String get codeOnce;
+
+  /// No description provided for @pickTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-click a tab to rename the device'**
+  String get pickTab;
 }
 
 class _AppLocalizationsDelegate

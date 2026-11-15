@@ -10,6 +10,16 @@ and transfer files between your phone and PC over your local network.
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-☕-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/jazeks)
 
+## Download
+
+Get the latest Android APK and the Windows installer from
+[**Releases**](https://github.com/Jazekss/Nova-FileManager/releases/latest).
+
+- `NovaFileManager_…_android-arm64.apk` — almost every modern phone
+- `NovaFileManager_…_android-armv7.apk` — older 32-bit phones
+- `NovaTransfer_…_windows-setup.exe` — Windows 10/11 companion (also
+  allows Nova Transfer through Windows Firewall)
+
 ## Features
 
 ### Nova File Manager (Android)
@@ -41,8 +51,17 @@ and transfer files between your phone and PC over your local network.
 
 ### Nova Transfer (Windows companion)
 
-- **Pair once** — scan the QR (or enter the link manually); a fixed port
-  and persisted token mean the phone reconnects automatically.
+- **Pair once** — scan the QR, or type the PC address + one-time code
+  on the phone. After that the link heals itself: open Nova on the PC
+  and on the phone and they find each other again (heartbeat, backup
+  addresses, encrypted LAN discovery) — also after restarts, Wi-Fi drops
+  or a new IP address.
+- **My phone + other devices** — the header shows *My phone* and *Other
+  devices*; every extra phone or PC gets its own renameable tab.
+- **Per-folder sharing** — when adding a PC folder choose *Only my
+  phone*, *All paired devices* or picked devices.
+- **Firewall check** — detects when Windows Firewall blocks the phone
+  and fixes it with one click.
 - **Two-pane window** — PC folders shared *to* the phone on the left,
   files shared *from* the phone on the right (with refresh + download).
 - **Share APK via QR** — pick an `.apk`, show a QR; the phone's camera
@@ -50,18 +69,39 @@ and transfer files between your phone and PC over your local network.
 - **Optional remote thumbnails** — image/video/APK previews over the LAN
   (toggle in Settings; off by default as it slows listing).
 
+### Other devices (phones ↔ phones ↔ PCs)
+
+Link any number of your own (or a friend's) phones and computers to move
+files fast over Wi-Fi:
+
+- Pair by scanning the other device's QR, or by typing its address and
+  one-time code. Phone ↔ phone works the same way.
+- Every device has a name; rename paired devices so you know who is who.
+- Share folders/files with **all** paired devices or only **specific**
+  ones; browse, download and upload in their shared folders.
+- Paired devices are remembered and reconnect while Nova is open on both
+  sides. Closing Nova ends the connection; reopening restores it.
+
 ## Security
 
-The phone↔PC link is encrypted end-to-end on your LAN:
+All links are encrypted end-to-end on your LAN (shared code:
+[`packages/nova_link`](packages/nova_link)):
 
-- The pairing token lives only inside the QR code — it never travels
-  the network.
-- Every request is signed with `HMAC-SHA256(token, method|path|ts)`
-  (±10 min window) — replay and forgery are rejected.
-- All request/response bodies are sealed with **AES-256-GCM**
-  (key = `SHA-256(token)`).
-- File access is confined to explicitly shared folders — path traversal
-  (`../`) is rejected server-side.
+- **Pairing** — X25519 key exchange authenticated with a single-use
+  60-bit code (from the QR or typed). A passive listener never sees the
+  key; an active attacker gets one online guess per attempt, attempts
+  are capped and the code changes after every use. Each pair of devices
+  gets its own 256-bit key that never travels the network.
+- **Requests** — signed with `HMAC-SHA256` over method, path, query and
+  timestamp with a per-request nonce; replays and forgeries are refused.
+  Clock differences between devices are corrected automatically.
+- **Data** — every request and response body is sealed with
+  **AES-256-GCM**.
+- **Access** — a device only sees folders shared with it. Paths are
+  normalised and symlinks/junctions resolved, so `..` tricks can't
+  escape a shared folder. Other devices can't delete or rename anything.
+- **Discovery** — LAN broadcasts carry only HMAC tags, never device ids
+  or keys.
 
 ## Build
 
@@ -74,6 +114,10 @@ flutter build apk --release --split-per-abi
 cd desktop/nova_transfer
 flutter pub get
 flutter build windows
+ISCC installer.iss   # Inno Setup 6 → BUILDS/
+
+# Tests
+cd packages/nova_link && dart test
 ```
 
 Android 8+ (API 26+) • Windows 10 64-bit+ • Flutter 3.47+

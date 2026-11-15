@@ -1,0 +1,16 @@
+name: nova_link
+description: Secure LAN link for Nova File Manager and Nova Transfer (pairing, signed + sealed requests, discovery, multi-device mesh).
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  crypto: ^3.0.5
+  cryptography: 2.7.0
+  http: ^1.6.0
+
+dev_dependencies:
+  lints: any
+  test: any

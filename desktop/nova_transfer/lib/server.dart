@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import 'package:nova_link/nova_link.dart' show SafePath, PairingHost, PairCode;
+
 import 'lan_crypto.dart';
 
 /// PC-hosted pairing + file server. The phone scans a QR containing
@@ -52,6 +54,27 @@ class PairServer {
   /// minute is answered with `unpair: true` (reaches phones that share
   /// nothing, too). Expires so a later fresh QR pairing isn't kicked.
   DateTime? _kickAt;
+
+  /// Manual pairing for "my phone": address + one-time code typed on
+  /// the phone (no QR needed). The handshake hands over the pairing
+  /// token sealed with a key derived from X25519 + the code.
+  late final PairingHost codePairing = PairingHost(
+    myId: 'nova-desktop-primary',
+    myName: Platform.localHostname,
+    kind: 'pc',
+    onCodeChanged: () => onCodeChanged?.call(),
+    onPaired: (peer, key) {
+      _kickAt = null;
+      return {'token': _token};
+    },
+  );
+
+  /// UI refresh hook for code rotation.
+  void Function()? onCodeChanged;
+
+  /// Current manual pairing code (re-opened when it expires).
+  String get pairCode =>
+      PairCode.format(codePairing.code ?? codePairing.open());
 
   void kickPhone() {
     _kickAt = DateTime.now();
@@ -296,14 +319,8 @@ class PairServer {
     await req.response.close();
   }
 
-  bool _insideShare(String path) {
-    final abs = File(path).absolute.path.replaceAll('/', '\\');
-    for (final root in sharedRoots) {
-      final r = File(root).absolute.path.replaceAll('/', '\\');
-      if (abs == r || abs.startsWith('$r\\')) return true;
-    }
-    return false;
-  }
+  /// '..' segments, symlinks and junctions can't escape the shares.
+  bool _insideShare(String path) => SafePath.inside(path, sharedRoots);
 
   /// /apk is the only unsigned route — the phone camera opens it in a
   /// browser that cannot sign or decrypt. It uses a dedicated one-off
@@ -314,6 +331,10 @@ class PairServer {
   Future<void> _handle(HttpRequest req) async {
     try {
       final p = req.uri.path;
+      if (codePairing.handles(req)) {
+        await codePairing.handle(req);
+        return;
+      }
       if (req.method == 'GET' && p == '/apk' && _authApk(req)) {
         await _serveApk(req);
         return;
@@ -580,7 +601,11 @@ class PairServer {
       final content = body.sublist(hEnd + 4, next - 2);
       final name = _fileName(headers);
       if (name != null && name.isNotEmpty) {
-        final safe = name.split('/').last.split('\\').last;
+        final safe = SafePath.safeFileName(name);
+        if (safe == null) {
+          pos = next;
+          continue;
+        }
         var out = '$dir${Platform.pathSeparator}$safe';
         var n = 1;
         while (File(out).existsSync()) {

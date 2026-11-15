@@ -590,4 +590,104 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get pcUnreachableHint =>
       'Nie można połączyć się z komputerem. Upewnij się, że Nova Transfer jest otwarty, oba urządzenia są w tej samej sieci Wi-Fi, a Zapora Windows zezwala na Nova Transfer.';
+
+  @override
+  String get otherDevices => 'Inne urządzenia';
+
+  @override
+  String get otherDevicesHint =>
+      'Połącz inne komputery i telefony, aby szybko przenosić pliki. Nova musi być otwarta na obu urządzeniach; sparowane urządzenia łączą się ponownie same.';
+
+  @override
+  String get thisDevice => 'To urządzenie';
+
+  @override
+  String get deviceName => 'Nazwa urządzenia';
+
+  @override
+  String get devices => 'Urządzenia';
+
+  @override
+  String get addDevice => 'Dodaj urządzenie';
+
+  @override
+  String get pairCode => 'Kod';
+
+  @override
+  String get deviceAddress => 'Adres';
+
+  @override
+  String get pairCodeWrong =>
+      'Błędny lub wygasły kod — sprawdź i spróbuj ponownie.';
+
+  @override
+  String get deviceUnreachable =>
+      'Nie można połączyć się z urządzeniem. Czy Nova jest tam otwarta i w tej samej sieci Wi-Fi?';
+
+  @override
+  String get noDevices => 'Brak urządzeń';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline — otwórz na nim Nova';
+
+  @override
+  String get deviceRejected => 'To urządzenie usunęło parowanie';
+
+  @override
+  String get removeDevice => 'Usuń urządzenie';
+
+  @override
+  String get removeDeviceNote =>
+      'Oba urządzenia zapomną o sobie. Aby je ponownie połączyć, potrzebny będzie nowy kod.';
+
+  @override
+  String get shareWith => 'Udostępnij';
+
+  @override
+  String get shareAll => 'Wszystkie sparowane urządzenia';
+
+  @override
+  String get deviceOffline =>
+      'Urządzenie nie odpowiada — otwórz na nim Nova w tej samej sieci Wi-Fi.';
+
+  @override
+  String pairedWith(String name) {
+    return 'Połączono z $name';
+  }
+
+  @override
+  String receivedFrom(String name, String file) {
+    return 'Odebrano od $name: $file';
+  }
+
+  @override
+  String get otherDevicesCard => 'Dodatkowe komputery i telefony';
+
+  @override
+  String get scanOtherQr => 'Zeskanuj QR drugiego urządzenia';
+
+  @override
+  String get showMyQr => 'Pokaż QR tego telefonu';
+
+  @override
+  String get enterAddressCode => 'Wpisz adres i kod';
+
+  @override
+  String get pcAddress => 'Adres komputera';
+
+  @override
+  String get myQrHint =>
+      'Na drugim urządzeniu otwórz Nova → Inne urządzenia → Dodaj urządzenie, a następnie zeskanuj ten QR lub wpisz adres i kod. Kod działa raz.';
+
+  @override
+  String get sharedWithDevices => 'Udostępniane z tego telefonu';
+
+  @override
+  String get shareScopeAll => 'Wszystkie urządzenia';
+
+  @override
+  String get addShare => 'Udostępnij folder lub plik';
 }

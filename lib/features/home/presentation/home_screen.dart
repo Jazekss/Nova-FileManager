@@ -11,6 +11,7 @@ import '../../../core/utils/format.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../recycle_bin/application/recycle_bin_controller.dart';
 import '../../recycle_bin/presentation/recycle_bin_screen.dart';
+import '../../devices/presentation/other_devices_screen.dart';
 import '../../pc_share/presentation/pc_share_screen.dart';
 import '../../vault/data/vault_service.dart';
 import '../../vault/presentation/vault_screen.dart';
@@ -130,6 +131,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const PcShareScreen(),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTokens.spacingMd),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.devices_other_outlined),
+                title: Text(l10n(context).otherDevices),
+                subtitle: Text(l10n(context).otherDevicesCard),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OtherDevicesScreen(),
                   ),
                 ),
               ),

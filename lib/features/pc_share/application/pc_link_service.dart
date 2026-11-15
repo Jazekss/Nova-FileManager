@@ -124,9 +124,13 @@ class PcLinkService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Pairs with a scanned/typed link. Returns null or an error code.
-  Future<String?> pair(String link) async {
+  /// Pairs with a scanned/pasted link, or with a typed address + the
+  /// one-time code shown on the PC when [code] is given.
+  Future<String?> pair(String link, {String? code}) async {
     _set(PcLinkStatus.connecting);
-    final err = await client.pair(link);
+    final err = code == null
+        ? await client.pair(link)
+        : await client.pairWithCode(link, code);
     if (err != null) {
       _set(PcLinkStatus.unpaired);
       return err;
