@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:nova_link/nova_link.dart' show LanStream;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +17,32 @@ import 'features/drive/data/drive_service.dart';
 import 'features/search/application/search_controller.dart' as search;
 import 'features/vault/data/vault_service.dart';
 
+const _storage = MethodChannel('dev.nova.nova_file_manager/storage');
+
+Future<Uint8List> _aes(
+  bool enc,
+  Uint8List key,
+  Uint8List nonce,
+  Uint8List data,
+  Uint8List aad,
+) async {
+  final r = await _storage.invokeMethod<Uint8List>('aesGcm', {
+    'enc': enc,
+    'key': key,
+    'nonce': nonce,
+    'data': data,
+    'aad': aad,
+  });
+  if (r == null) throw StateError('aes');
+  return r;
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Transfer frames use Android's hardware AES-GCM (pure Dart is ~10×
+  // slower and made PC previews crawl).
+  LanStream.nativeSeal = (k, n, d, a) => _aes(true, k, n, d, a);
+  LanStream.nativeOpen = (k, n, d, a) => _aes(false, k, n, d, a);
   final settings = SettingsController();
   await settings.load();
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -6,6 +7,8 @@ import 'package:nova_link/nova_link.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../core/settings/settings_controller.dart';
+import '../../../core/utils/file_icons.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -658,6 +661,55 @@ class _PeerBrowseScreenState extends State<PeerBrowseScreen> {
     }
   }
 
+  final Map<String, Future<Uint8List?>> _thumbs = {};
+
+  /// Typed icon, or the remote thumbnail (with a play badge on videos).
+  Widget _leading(MeshEntry e) {
+    final scheme = Theme.of(context).colorScheme;
+    final icon = Icon(
+      FileIcons.iconForName(e.name, isDir: e.isDir),
+      color: FileIcons.colorForName(e.name, scheme, isDir: e.isDir),
+    );
+    if (e.isDir || !context.read<SettingsController>().shareThumbs) {
+      return icon;
+    }
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: FutureBuilder<Uint8List?>(
+        future: _thumbs.putIfAbsent(
+          e.path,
+          () => _mesh.node.fetchThumb(widget.peer, e.path),
+        ),
+        builder: (context, s) => s.data == null
+            ? Center(child: icon)
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(
+                      s.data!,
+                      fit: BoxFit.cover,
+                      cacheWidth: 120,
+                      errorBuilder: (_, _, _) => Center(child: icon),
+                    ),
+                    if (FileIcons.isVideoName(e.name))
+                      const Align(
+                        alignment: Alignment.bottomRight,
+                        child: Icon(
+                          Icons.play_circle,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
   String _startPath() {
     final browser = context.read<FileBrowserController>();
     return browser.currentPath.isEmpty
@@ -782,11 +834,7 @@ class _PeerBrowseScreenState extends State<PeerBrowseScreen> {
                         itemBuilder: (context, i) {
                           final e = _entries[i];
                           return ListTile(
-                            leading: Icon(
-                              e.isDir
-                                  ? Icons.folder
-                                  : Icons.insert_drive_file_outlined,
-                            ),
+                            leading: _leading(e),
                             title: Text(
                               e.name,
                               maxLines: 1,

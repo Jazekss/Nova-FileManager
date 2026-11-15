@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:nova_link/nova_link.dart' show MeshNode;
+import 'package:nova_link/nova_link.dart' show MeshNode, LanStream;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'devices.dart';
@@ -31,6 +31,7 @@ const _appVersion = '1.1.0';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  _migrateDataDir();
   final settings = DesktopSettings();
   await settings.load();
   runApp(
@@ -39,6 +40,29 @@ Future<void> main() async {
       child: const NovaDesktopApp(),
     ),
   );
+}
+
+/// App data moved from %APPDATA%\dev.nova\Nova Transfer to the common
+/// %APPDATA%\JKapps\Nova Transfer folder (all JKapps live there) —
+/// copies the old settings once so pairing, shares and devices survive.
+void _migrateDataDir() {
+  try {
+    final appData = Platform.environment['APPDATA'];
+    if (appData == null) return;
+    final oldDir = Directory('$appData\\dev.nova\\Nova Transfer');
+    final newDir = Directory('$appData\\JKapps\\Nova Transfer');
+    final marker = File('${newDir.path}\\shared_preferences.json');
+    if (marker.existsSync() || !oldDir.existsSync()) return;
+    newDir.createSync(recursive: true);
+    for (final e in oldDir.listSync()) {
+      if (e is File) {
+        e.copySync('${newDir.path}\\${e.uri.pathSegments.last}');
+      }
+    }
+    oldDir.deleteSync(recursive: true);
+    final parent = Directory('$appData\\dev.nova');
+    if (parent.existsSync() && parent.listSync().isEmpty) parent.deleteSync();
+  } catch (_) {}
 }
 
 class NovaDesktopApp extends StatelessWidget {
@@ -285,6 +309,7 @@ class _DesktopHomeState extends State<DesktopHome> {
     // unreachable phone and fresh PC addresses for the QR.
     _poll = Timer.periodic(const Duration(seconds: 4), (_) => _checkPhone());
     _checkFirewall();
+    _server.thumbProvider = desktopThumb;
     _server.onCodeChanged = () {
       if (mounted) setState(() {});
     };
@@ -474,15 +499,44 @@ class _DesktopHomeState extends State<DesktopHome> {
     }
   }
 
+  /// Signed GET /api/dl on the phone → framed sealed stream.
+  Future<http.StreamedResponse> _phoneDl(String path) async {
+    final (base, key) = _phoneParts;
+    final params = {'nonce': LanCrypto.nonce(), 'path': path};
+    final ts = LanCrypto.now() + _phoneSkew;
+    final sig = LanCrypto.sign(key, 'GET', '/api/dl', ts, params);
+    final res = await LanStream.get(
+      Uri.parse('$base/api/dl')
+          .replace(queryParameters: {...params, 'ts': '$ts', 'sig': sig}),
+      timeout: const Duration(seconds: 15),
+    );
+    if (res.statusCode != 200) {
+      await res.stream.drain<void>();
+      throw 'HTTP ${res.statusCode}';
+    }
+    return res;
+  }
+
+  Future<Uint8List> _phoneFetch(String path) async =>
+      LanStream.readAll(_phoneParts.$2, await _phoneDl(path));
+
+  /// Lightbox bytes: HEIC/HEIF/AVIF can't be decoded on Windows, so the
+  /// phone converts them to JPEG (/api/view); everything else streams.
+  Future<Uint8List?> _imageBytes(String path) async {
+    final e = path.toLowerCase().split('.').last;
+    if (e == 'heic' || e == 'heif' || e == 'avif') {
+      return _phoneGet(
+        '/api/view',
+        query: {'path': path},
+        timeout: const Duration(minutes: 1),
+      );
+    }
+    return _phoneFetch(path);
+  }
+
   /// Downloads a phone file into [dir] (already picked). Large files
   /// get a generous timeout — the sealed channel encrypts on both ends.
   Future<void> _phoneDownloadTo(_RemoteEntry f, String dir) async {
-    final bytes = await _phoneGet(
-      '/api/dl',
-      query: {'path': f.path},
-      timeout: const Duration(minutes: 5),
-    );
-    if (bytes == null) throw 'empty';
     final sep = Platform.pathSeparator;
     var out = '$dir$sep${f.name}';
     var n = 1;
@@ -493,7 +547,7 @@ class _DesktopHomeState extends State<DesktopHome> {
           : '$dir$sep${f.name} ($n)';
       n++;
     }
-    await File(out).writeAsBytes(bytes);
+    await LanStream.toFile(_phoneParts.$2, await _phoneDl(f.path), File(out));
   }
 
   Future<void> _downloadPhoneFile(_RemoteEntry f) async {
@@ -589,8 +643,8 @@ class _DesktopHomeState extends State<DesktopHome> {
     }
   }
 
-  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
-  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+  static const _imgExts = imageExts;
+  static const _videoExts = videoExts;
   static const _audioExts = {
     'mp3',
     'wav',
@@ -643,11 +697,7 @@ class _DesktopHomeState extends State<DesktopHome> {
                         zoomed = false;
                       }),
                       itemBuilder: (context, i) => FutureBuilder<Uint8List?>(
-                        future: _phoneGet(
-                          '/api/dl',
-                          query: {'path': images[i].path},
-                          timeout: const Duration(minutes: 2),
-                        ),
+                        future: _imageBytes(images[i].path),
                         builder: (context, snap) =>
                             snap.connectionState != ConnectionState.done
                             ? const Center(child: CircularProgressIndicator())
@@ -797,12 +847,7 @@ class _DesktopHomeState extends State<DesktopHome> {
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
       try {
-        final bytes = await _phoneGet(
-          '/api/dl',
-          query: {'path': f.path},
-          timeout: const Duration(minutes: 2),
-        );
-        if (bytes == null) throw 'fetch';
+        final bytes = await _phoneFetch(f.path);
         if (!mounted) return;
         Navigator.pop(context);
         await showDialog<void>(
@@ -827,15 +872,9 @@ class _DesktopHomeState extends State<DesktopHome> {
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
       try {
-        final bytes = await _phoneGet(
-          '/api/dl',
-          query: {'path': f.path},
-          timeout: const Duration(minutes: 5),
-        );
-        if (bytes == null) throw 'fetch';
         final tmp = Directory.systemTemp.createTempSync('nova_preview');
         final file = File('${tmp.path}\\${f.name}');
-        await file.writeAsBytes(bytes);
+        await LanStream.toFile(_phoneParts.$2, await _phoneDl(f.path), file);
         if (!mounted) return;
         Navigator.pop(context);
         await showDialog<void>(
@@ -2001,8 +2040,8 @@ class _PhonePanel extends StatelessWidget {
   final void Function(_RemoteEntry) onDownload;
   final VoidCallback onDisconnect;
 
-  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
-  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+  static const _imgExts = imageExts;
+  static const _videoExts = videoExts;
   static const _audioExts = {
     'mp3',
     'wav',
@@ -2098,15 +2137,8 @@ class _PhonePanel extends StatelessWidget {
 
   Widget _thumbOrIcon(BuildContext context, _RemoteEntry f, double size) {
     final scheme = Theme.of(context).colorScheme;
-    if (f.isDir) {
-      return Icon(Icons.folder, size: size, color: scheme.primary);
-    }
-    final fileIcon = Icon(
-      Icons.insert_drive_file_outlined,
-      size: size,
-      color: scheme.onSurfaceVariant,
-    );
-    if (!thumbs) return fileIcon;
+    final fileIcon = typeIcon(f.name, scheme, size, isDir: f.isDir);
+    if (f.isDir || !thumbs) return fileIcon;
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: FutureBuilder<Uint8List?>(
@@ -2114,13 +2146,18 @@ class _PhonePanel extends StatelessWidget {
         builder: (context, snap) {
           final b = snap.data;
           if (b == null) return fileIcon;
-          return Image.memory(
-            b,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            // Undecodable bytes used to leave an empty box.
-            errorBuilder: (context, error, stack) => fileIcon,
+          return badgedThumb(
+            f.name,
+            Image.memory(
+              b,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              cacheWidth: (size * 2).round(),
+              // Undecodable bytes used to leave an empty box.
+              errorBuilder: (context, error, stack) => fileIcon,
+            ),
+            size,
           );
         },
       ),

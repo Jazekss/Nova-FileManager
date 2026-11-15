@@ -47,6 +47,10 @@ void main() {
   });
 
   test('UDP discovery answers with pair id and port', () async {
+    if (server.port != PairServer.preferredPort) {
+      markTestSkipped('another Nova Transfer instance owns the ports');
+      return;
+    }
     final sock = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     final reply = Completer<String>();
     sock.listen((e) {

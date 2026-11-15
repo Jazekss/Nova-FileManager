@@ -27,7 +27,7 @@ class SettingsController extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   SizeUnit _sizeUnit = SizeUnit.auto;
   bool _showHidden = false;
-  bool _shareThumbs = false;
+  bool _shareThumbs = true;
   String? _languageCode;
 
   ThemeMode get themeMode => _themeMode;
@@ -51,7 +51,7 @@ class SettingsController extends ChangeNotifier {
     _themeMode = ThemeMode.values[prefs.getInt(_keyTheme) ?? 0];
     _sizeUnit = SizeUnit.values[prefs.getInt(_keyUnit) ?? 0];
     _showHidden = prefs.getBool(_keyHidden) ?? false;
-    _shareThumbs = prefs.getBool(_keyThumbs) ?? false;
+    _shareThumbs = prefs.getBool(_keyThumbs) ?? true;
     _pcShareView = prefs.getString(_keyPcView) ?? 'list';
     _languageCode = prefs.getString(_keyLang);
     notifyListeners();

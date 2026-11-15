@@ -4,7 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
-import 'package:nova_link/nova_link.dart' show PairingHost, PairError;
+import 'package:nova_link/nova_link.dart'
+    show PairingHost, PairError, LanStream;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/crypto/lan_crypto.dart';
@@ -25,7 +26,6 @@ class PcClient {
   /// Short calls (list/info/posts). Transfers get their own generous
   /// budgets — an 8s cap used to kill big downloads mid-flight.
   static const _timeout = Duration(seconds: 15);
-  static const _transferTimeout = Duration(minutes: 5);
   static const _probeTimeout = Duration(seconds: 3);
 
   String? host;
@@ -337,8 +337,29 @@ class PcClient {
 
   /// Fetches the whole file into memory for preview without saving —
   /// used by the in-app image lightbox / video / audio preview.
-  Future<Uint8List?> fetch(PcEntry e) =>
-      _get('/api/dl', q: {'path': e.path}, timeout: _transferTimeout);
+  Future<Uint8List?> fetch(PcEntry e) async =>
+      LanStream.readAll(token!, await _dl(e.path));
+
+  /// Streams a PC file straight into [out] (video/audio previews).
+  Future<void> fetchTo(PcEntry e, File out) async =>
+      LanStream.toFile(token!, await _dl(e.path), out);
+
+  /// Signed GET /api/dl → framed (256 KB sealed chunks) response.
+  Future<http.StreamedResponse> _dl(String path) async {
+    final params = {'nonce': LanCrypto.nonce(), 'path': path};
+    final uri = Uri.parse('$baseUrl/api/dl')
+        .replace(queryParameters: _signed('GET', '/api/dl', params));
+    final res = await LanStream.get(uri, timeout: _timeout);
+    if (res.statusCode == 403) {
+      await res.stream.drain<void>();
+      throw StateError('rejected');
+    }
+    if (res.statusCode != 200) {
+      await res.stream.drain<void>();
+      throw 'HTTP ${res.statusCode}';
+    }
+    return res;
+  }
 
   /// Renames a file inside the PC's shared folder.
   Future<void> rename(PcEntry e, String newName) =>
@@ -346,12 +367,6 @@ class PcClient {
 
   /// Downloads [entry] into [destDir]; returns the written path.
   Future<String> download(PcEntry entry, String destDir) async {
-    final bytes = await _get(
-      '/api/dl',
-      q: {'path': entry.path},
-      timeout: _transferTimeout,
-    );
-    if (bytes == null) throw 'decrypt_failed';
     var out = '$destDir/${entry.name}';
     var n = 1;
     while (File(out).existsSync()) {
@@ -361,7 +376,7 @@ class PcClient {
           : '$destDir/${entry.name} ($n)';
       n++;
     }
-    await File(out).writeAsBytes(bytes);
+    await LanStream.toFile(token!, await _dl(entry.path), File(out));
     return out;
   }
 

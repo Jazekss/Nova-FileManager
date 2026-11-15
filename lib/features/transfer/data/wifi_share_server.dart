@@ -6,7 +6,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 
-import 'package:nova_link/nova_link.dart' show SafePath;
+import 'package:nova_link/nova_link.dart' show SafePath, LanStream;
 
 import '../../../core/crypto/lan_crypto.dart';
 import '../../pc_share/data/lan_discovery.dart';
@@ -152,6 +152,17 @@ class WifiShareServer {
         await _serveApiList(req);
       } else if (req.method == 'GET' && req.uri.path == '/api/dl') {
         await _serveFile(req);
+      } else if (req.method == 'GET' && req.uri.path == '/api/view') {
+        final path = req.uri.queryParameters['path'] ?? '';
+        final b = _insideRoots(path) && File(path).existsSync()
+            ? await viewJpeg(path)
+            : null;
+        if (b == null) {
+          req.response.statusCode = 204;
+          await req.response.close();
+        } else {
+          await _seal(req, b);
+        }
       } else if (req.method == 'GET' && req.uri.path.startsWith('/api/thumb')) {
         await _serveThumb(req);
       } else if (req.method == 'POST' && req.uri.path == '/api/rename') {
@@ -256,12 +267,47 @@ class WifiShareServer {
       await req.response.close();
       return;
     }
-    await _seal(req, await File(path).readAsBytes());
+    await LanStream.serveFile(req, _shareToken, File(path));
   }
 
   static const _channel = MethodChannel('dev.nova.nova_file_manager/storage');
-  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
-  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+  static const _imgExts = {
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+  };
+  static const _videoExts = {
+    'mp4',
+    'mkv',
+    'avi',
+    'mov',
+    'webm',
+    '3gp',
+    'm4v',
+    'wmv',
+    'flv',
+    'ts',
+    'mpg',
+    'mpeg',
+  };
+  static const _audioExts = {
+    'mp3',
+    'wav',
+    'ogg',
+    'oga',
+    'opus',
+    'm4a',
+    'aac',
+    'flac',
+    'wma',
+    'amr',
+  };
   static const _apkExts = {'apk', 'aab'};
 
   /// Thumbnail cache — "path:mtime" → bytes (null = no thumbnail).
@@ -275,7 +321,6 @@ class WifiShareServer {
   /// from the native channel. 204 when no thumbnail exists.
   Future<void> _serveThumb(HttpRequest req) async {
     final path = req.uri.queryParameters['path'] ?? '';
-    final ext = path.toLowerCase().split('.').last;
     List<int>? bytes;
     var found = false;
     if (_insideRoots(path) && File(path).existsSync()) {
@@ -288,19 +333,7 @@ class WifiShareServer {
         bytes = _thumbCache[key];
         found = true;
       } else {
-        try {
-          if (_imgExts.contains(ext)) {
-            bytes = await Isolate.run(() => _makeImageThumb(path));
-          } else if (_apkExts.contains(ext)) {
-            bytes = await _channel.invokeMethod<List<int>>('apkIcon', {
-              'path': path,
-            });
-          } else if (_videoExts.contains(ext)) {
-            bytes = await _channel.invokeMethod<List<int>>('videoThumb', {
-              'path': path,
-            });
-          }
-        } catch (_) {}
+        bytes = await thumbnailFor(path);
         if (_thumbCache.length >= _thumbCacheMax) _thumbCache.clear();
         _thumbCache[key] = bytes;
         found = true;
@@ -314,13 +347,35 @@ class WifiShareServer {
     await _seal(req, bytes);
   }
 
+  /// Full-size JPEG of a photo (max 2560 px) — lets a PC that can't
+  /// decode HEIC/HEIF still preview Samsung photos.
+  static Future<List<int>?> viewJpeg(String path) async {
+    try {
+      return await _channel.invokeMethod<List<int>>('imageJpeg', {
+        'path': path,
+        'max': 2560,
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Thumbnail bytes for [path] (image, APK icon or video frame) or
   /// null — shared with the multi-device mesh server.
   static Future<List<int>?> thumbnailFor(String path) async {
     final ext = path.toLowerCase().split('.').last;
     try {
       if (_imgExts.contains(ext)) {
-        return await Isolate.run(() => _makeImageThumb(path));
+        // Native decoder: fast, EXIF-rotated, and handles HEIC/HEIF.
+        return await _channel.invokeMethod<List<int>>('imageJpeg', {
+              'path': path,
+              'max': 320,
+            }) ??
+            await Isolate.run(() => _makeImageThumb(path));
+      } else if (_audioExts.contains(ext)) {
+        return await _channel.invokeMethod<List<int>>('audioArt', {
+          'path': path,
+        });
       } else if (_apkExts.contains(ext)) {
         return await _channel.invokeMethod<List<int>>('apkIcon', {
           'path': path,

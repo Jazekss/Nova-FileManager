@@ -13,8 +13,10 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
-DefaultDirName={autopf}\Nova Transfer
-DefaultGroupName={#AppName}
+DefaultDirName={autopf}\JKapps\Nova Transfer
+; All JKapps share one parent folder; move older installs there.
+UsePreviousAppDir=no
+DefaultGroupName=JKapps\{#AppName}
 OutputDir=..\..\BUILDS
 OutputBaseFilename=NovaTransfer_1.1.0_windows-setup_2026-11-15
 SetupIconFile=windows\runner\resources\app_icon.ico
@@ -28,6 +30,11 @@ ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[InstallDelete]
+; Older versions installed to Program Files\Nova Transfer.
+Type: filesandordirs; Name: "{autopf}\Nova Transfer"
+Type: filesandordirs; Name: "{autoprograms}\{#AppName}"
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
@@ -46,6 +53,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 ; TCP pairing + UDP discovery on every network profile — on "Public"
 ; Wi-Fi the phone otherwise scans the QR and never reaches the PC.
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=all program=""{app}\{#AppExe}"""; Flags: runhidden; StatusMsg: "Configuring Windows Firewall..."
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=all program=""{autopf}\Nova Transfer\{#AppExe}"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Nova Transfer"""; Flags: runhidden
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Nova Transfer"" dir=in action=allow program=""{app}\{#AppExe}"" enable=yes profile=any"; Flags: runhidden
 Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
 

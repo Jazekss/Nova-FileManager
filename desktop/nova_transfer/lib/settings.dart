@@ -50,7 +50,7 @@ class DesktopSettings extends ChangeNotifier {
 
   /// Fetch thumbnails for phone-shared files — off by default since it
   /// makes list loading slower.
-  bool showThumbs = false;
+  bool showThumbs = true;
 
   /// Width of the left "PC folders" pane — persisted between launches.
   double paneWidth = 300;
@@ -93,7 +93,7 @@ class DesktopSettings extends ChangeNotifier {
     languageCode = p.getString(_keyLang);
     sharedFolders = p.getStringList(_keyShares) ?? [];
     pairToken = p.getString(_keyPairToken);
-    showThumbs = p.getBool(_keyThumbs) ?? false;
+    showThumbs = p.getBool(_keyThumbs) ?? true;
     paneWidth = p.getDouble(_keyPaneWidth) ?? 300;
     viewMode = p.getString(_keyViewMode) ?? 'small';
     phoneUrl = p.getString(_keyPhoneUrl);

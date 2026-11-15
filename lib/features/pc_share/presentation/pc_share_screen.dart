@@ -7,8 +7,10 @@ import 'package:provider/provider.dart';
 
 import '../../../core/settings/settings_controller.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/file_icons.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../core/widgets/steady_page_physics.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../file_manager/application/file_browser_controller.dart';
 import '../../file_manager/presentation/widgets/browser_dialogs.dart';
@@ -50,8 +52,29 @@ class _PcShareScreenState extends State<PcShareScreen> {
   /// Selected entries (lightbox checkmarks / tap-toggle) — paths.
   final Set<String> _selected = {};
 
-  static const _imgExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
-  static const _videoExts = {'mp4', 'mkv', 'avi', 'mov', 'webm', '3gp'};
+  static const _imgExts = {
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+  };
+  static const _videoExts = {
+    'mp4',
+    'mkv',
+    'avi',
+    'mov',
+    'webm',
+    '3gp',
+    'm4v',
+    'wmv',
+    'flv',
+    'ts',
+  };
   static const _audioExts = {
     'mp3',
     'wav',
@@ -217,6 +240,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
     if (idx < 0) return;
     final controller = PageController(initialPage: idx);
     var zoomed = false;
+    var pinch = false;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -226,38 +250,55 @@ class _PcShareScreenState extends State<PcShareScreen> {
             backgroundColor: Colors.black,
             child: Stack(
               children: [
-                PageView.builder(
-                  controller: controller,
-                  // Zoomed in → one-finger pan moves the picture, not the
-                  // page; swipe between images works again at 1x.
-                  physics: zoomed ? const NeverScrollableScrollPhysics() : null,
-                  itemCount: images.length,
-                  onPageChanged: (i) => setD(() {
-                    idx = i;
-                    zoomed = false;
-                  }),
-                  itemBuilder: (context, i) => Center(
-                    child: FutureBuilder<Uint8List?>(
-                      future: _client.fetch(images[i]),
-                      builder: (context, snap) {
-                        if (snap.connectionState != ConnectionState.done) {
-                          return const CircularProgressIndicator();
-                        }
-                        final bytes = snap.data;
-                        if (bytes == null) {
-                          return const Icon(
-                            Icons.broken_image,
-                            color: Colors.white54,
-                            size: 64,
+                PointerCounter(
+                  onChanged: (n) {
+                    if ((n > 1) == pinch) return;
+                    setD(() => pinch = n > 1);
+                    // Second finger landed mid-swipe → stay on this photo.
+                    if (pinch && controller.hasClients) {
+                      controller.animateToPage(
+                        idx,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  },
+                  child: PageView.builder(
+                    controller: controller,
+                    // Zoomed in or pinching → fingers move the picture, not
+                    // the page; a deliberate one-finger swipe (~5 mm) at 1x
+                    // switches photos.
+                    physics: zoomed || pinch
+                        ? const NeverScrollableScrollPhysics()
+                        : const SteadyPagePhysics(),
+                    itemCount: images.length,
+                    onPageChanged: (i) => setD(() {
+                      idx = i;
+                      zoomed = false;
+                    }),
+                    itemBuilder: (context, i) => Center(
+                      child: FutureBuilder<Uint8List?>(
+                        future: _client.fetch(images[i]),
+                        builder: (context, snap) {
+                          if (snap.connectionState != ConnectionState.done) {
+                            return const CircularProgressIndicator();
+                          }
+                          final bytes = snap.data;
+                          if (bytes == null) {
+                            return const Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 64,
+                            );
+                          }
+                          return _ZoomableImage(
+                            bytes: bytes,
+                            onZoomChanged: (z) {
+                              if (z != zoomed) setD(() => zoomed = z);
+                            },
                           );
-                        }
-                        return _ZoomableImage(
-                          bytes: bytes,
-                          onZoomChanged: (z) {
-                            if (z != zoomed) setD(() => zoomed = z);
-                          },
-                        );
-                      },
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -383,14 +424,11 @@ class _PcShareScreenState extends State<PcShareScreen> {
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
     try {
-      final bytes = await _client.fetch(e);
-      if (!mounted) return;
-      Navigator.pop(context);
-      if (bytes == null) throw 'fetch';
       final tmp = Directory.systemTemp.createTempSync('nova_audio');
       final f = File('${tmp.path}/${e.name}');
-      await f.writeAsBytes(bytes);
+      await _client.fetchTo(e, f);
       if (!mounted) return;
+      Navigator.pop(context);
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => AudioPlayerScreen(path: f.path),
@@ -414,14 +452,11 @@ class _PcShareScreenState extends State<PcShareScreen> {
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
     try {
-      final bytes = await _client.fetch(e);
-      if (!mounted) return;
-      Navigator.pop(context);
-      if (bytes == null) throw 'fetch';
       final tmp = Directory.systemTemp.createTempSync('nova_preview');
       final f = File('${tmp.path}/${e.name}');
-      await f.writeAsBytes(bytes);
+      await _client.fetchTo(e, f);
       if (!mounted) return;
+      Navigator.pop(context);
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => VideoPlayerScreen(path: f.path),
@@ -1064,26 +1099,70 @@ class _PcShareScreenState extends State<PcShareScreen> {
   }
 
   /// Shared thumbnail loader (cached per path).
+  Widget _typeIcon(PcEntry e, double size) => Icon(
+    FileIcons.iconForName(e.name, isDir: e.isDir),
+    size: size,
+    color: FileIcons.colorForName(
+      e.name,
+      Theme.of(context).colorScheme,
+      isDir: e.isDir,
+    ),
+  );
+
+  /// Thumbnail (cached per path) with a type icon fallback and a small
+  /// play badge on videos. HEIC photos the PC can't thumbnail are
+  /// decoded here (Android reads HEIC natively).
   Widget _thumb(PcEntry e, double size) {
+    if (e.isDir) return _typeIcon(e, size);
+    final heic = const {'heic', 'heif', 'avif'}.contains(_ext(e));
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: FutureBuilder<Uint8List?>(
         future: _thumbCache.containsKey(e.path)
             ? Future.value(_thumbCache[e.path])
-            : _client.thumb(e).then((b) => _thumbCache[e.path] = b),
+            : _client
+                  .thumb(e)
+                  .then(
+                    (b) async =>
+                        b ??
+                        (heic && e.size < 25 << 20
+                            ? await _client.fetch(e)
+                            : null),
+                  )
+                  .catchError((_) => null)
+                  .then((b) => _thumbCache[e.path] = b),
         builder: (context, snap) {
           final bytes = snap.data;
-          if (bytes == null) {
-            return Icon(
-              e.isDir ? Icons.folder : Icons.insert_drive_file_outlined,
-              size: size,
-            );
-          }
-          return Image.memory(
+          if (bytes == null) return _typeIcon(e, size);
+          final img = Image.memory(
             bytes,
             width: size,
             height: size,
             fit: BoxFit.cover,
+            cacheWidth: (size * 2).round(),
+            errorBuilder: (_, _, _) => _typeIcon(e, size),
+          );
+          if (!FileIcons.isVideoName(e.name)) return img;
+          return Stack(
+            children: [
+              img,
+              Positioned(
+                right: 2,
+                bottom: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: size < 60 ? 12 : 20,
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -1116,7 +1195,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
               )
             : thumbs && !e.isDir
             ? _thumb(e, 44)
-            : Icon(e.isDir ? Icons.folder : Icons.insert_drive_file_outlined),
+            : _typeIcon(e, 24),
         title: Text(e.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: e.isDir ? null : Text(formatBytes(e.size, SizeUnit.auto)),
         onTap: () => _openEntry(e),
@@ -1148,12 +1227,7 @@ class _PcShareScreenState extends State<PcShareScreen> {
                   Center(
                     child: thumbs
                         ? _thumb(e, iconSize)
-                        : Icon(
-                            e.isDir
-                                ? Icons.folder
-                                : Icons.insert_drive_file_outlined,
-                            size: iconSize,
-                          ),
+                        : _typeIcon(e, iconSize),
                   ),
                   if (_selected.contains(e.path))
                     Positioned(
