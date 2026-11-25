@@ -688,4 +688,234 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get addShare => 'Dela en mapp eller fil';
+
+  @override
+  String get appsCardSubtitle => 'Storlek, senast använd, avinstallera';
+
+  @override
+  String get files => 'Filer';
+
+  @override
+  String get filesCardSubtitle => 'Bilder, video, dokument m.m. per kategori';
+
+  @override
+  String get uninstall => 'Avinstallera';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Avinstallera $count appar?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android ber dig bekräfta varje app. Avinstallation tar även bort appens cache och privata data; mappar den lämnat erbjuds för borttagning efteråt.';
+
+  @override
+  String uninstalledCount(int count) {
+    return '$count appar avinstallerade';
+  }
+
+  @override
+  String get total => 'Totalt';
+
+  @override
+  String get appInfo => 'Appinfo';
+
+  @override
+  String get appInfoNote =>
+      'Rensa appens cache eller data i Android-inställningar';
+
+  @override
+  String get cleaner => 'Rensning';
+
+  @override
+  String get sortBySize => 'Storlek';
+
+  @override
+  String get sortByLastUsed => 'Senast använd (äldst först)';
+
+  @override
+  String get sortByName => 'Namn';
+
+  @override
+  String get sortByDate => 'Datum';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count appar · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Cache';
+
+  @override
+  String get usageAccessTitle => 'Tillåt ”Användningsåtkomst”';
+
+  @override
+  String get usageAccessNote =>
+      'Behövs för att visa full appstorlek, cache och när appen senast användes.';
+
+  @override
+  String get allow => 'Tillåt';
+
+  @override
+  String get neverUsed => 'Inte använd nyligen';
+
+  @override
+  String get lastUsedUnknown => 'Senast använd: tillåt användningsåtkomst';
+
+  @override
+  String get lastUsed => 'Senast använd';
+
+  @override
+  String get leftoversTitle => 'Kvarlämnade mappar';
+
+  @override
+  String get leftoversNote =>
+      'Mapparna tillhörde de borttagna apparna. Avmarkera det du vill behålla.';
+
+  @override
+  String get keep => 'Behåll';
+
+  @override
+  String deletedCount(int count) {
+    return '$count objekt borttagna';
+  }
+
+  @override
+  String get rescan => 'Skanna igen';
+
+  @override
+  String get clearAllCaches => 'Rensa alla appars cache';
+
+  @override
+  String get clearAllCachesQ => 'Rensa alla appars cache?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android ber dig bekräfta. Apparna behåller data och inloggningar — bara tillfälliga filer tas bort.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Kräver Android 11+ och åtkomst till alla filer. På äldre Android: öppna appinfo.';
+
+  @override
+  String get clear => 'Rensa';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Ta bort $count objekt?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Detta är permanent — objekten hamnar inte i papperskorgen.';
+
+  @override
+  String get junkThumbs => 'Miniatyrcache';
+
+  @override
+  String get junkTemp => 'Tillfälliga filer';
+
+  @override
+  String get junkCacheDirs => 'Cachemappar';
+
+  @override
+  String get junkTempDirs => '”Temp”-mappar (kontrollera först)';
+
+  @override
+  String get junkLogs => 'Loggfiler';
+
+  @override
+  String get junkEmpty => 'Tomma mappar';
+
+  @override
+  String get junkLeftovers => 'Kvar efter avinstallerade appar';
+
+  @override
+  String get junkNova => 'Novas tillfälliga filer';
+
+  @override
+  String get deleteSelected => 'Ta bort valda';
+
+  @override
+  String get scanning => 'Skannar…';
+
+  @override
+  String get appCaches => 'Appcache';
+
+  @override
+  String get appCachesNote =>
+      'Tryck på en app för att öppna dess inställningar och rensa bara den.';
+
+  @override
+  String get junkFiles => 'Onödiga filer';
+
+  @override
+  String get selectNone => 'Avmarkera alla';
+
+  @override
+  String get noJunk => 'Inget att rensa — snyggt!';
+
+  @override
+  String get catImages => 'Bilder';
+
+  @override
+  String get catVideos => 'Videor';
+
+  @override
+  String get catAudio => 'Ljud';
+
+  @override
+  String get catDocuments => 'Dokument';
+
+  @override
+  String get catArchives => 'Arkiv';
+
+  @override
+  String get catApks => 'Installationsfiler (APK)';
+
+  @override
+  String get catLarge => 'Stora filer (100 MB+)';
+
+  @override
+  String get catOther => 'Övriga filer';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Flytta $count filer till papperskorgen?';
+  }
+
+  @override
+  String get moveToBinNote => 'Du kan återställa dem från papperskorgen.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count flyttade till papperskorgen';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Flytta $count filer hit?';
+  }
+
+  @override
+  String get move => 'Flytta';
+
+  @override
+  String movedCount(int count) {
+    return '$count filer flyttade';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Använd adress och kod från Nova Transfer → Anslutning (inte ”Andra enheter”).';
+
+  @override
+  String get pcAddressBad =>
+      'Ange adressen, t.ex. 192.168.1.10 eller 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Adressen/koden hör till ”Andra enheter”. För din egen dator: Nova Transfer → Anslutning.';
 }

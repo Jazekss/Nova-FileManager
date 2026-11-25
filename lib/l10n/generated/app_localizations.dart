@@ -1365,6 +1365,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share a folder or file'**
   String get addShare;
+
+  /// No description provided for @appsCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sizes, last use, uninstall'**
+  String get appsCardSubtitle;
+
+  /// No description provided for @files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get files;
+
+  /// No description provided for @filesCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos, documents and more by category'**
+  String get filesCardSubtitle;
+
+  /// No description provided for @uninstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall'**
+  String get uninstall;
+
+  /// No description provided for @uninstallQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall {count} apps?'**
+  String uninstallQ(int count);
+
+  /// No description provided for @uninstallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Android asks to confirm each app. Uninstalling also removes the app\'s cache and private data; folders it left in your storage are offered for deletion afterwards.'**
+  String get uninstallNote;
+
+  /// No description provided for @uninstalledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} apps uninstalled'**
+  String uninstalledCount(int count);
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @appInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'App info'**
+  String get appInfo;
+
+  /// No description provided for @appInfoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear this app\'s cache or data in Android settings'**
+  String get appInfoNote;
+
+  /// No description provided for @cleaner.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaner'**
+  String get cleaner;
+
+  /// No description provided for @sortBySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get sortBySize;
+
+  /// No description provided for @sortByLastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used (oldest first)'**
+  String get sortByLastUsed;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sortByName;
+
+  /// No description provided for @sortByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sortByDate;
+
+  /// No description provided for @appsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} apps · {size}'**
+  String appsSummary(int count, String size);
+
+  /// No description provided for @cacheTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache'**
+  String get cacheTotal;
+
+  /// No description provided for @usageAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow \"Usage access\"'**
+  String get usageAccessTitle;
+
+  /// No description provided for @usageAccessNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed to show full app sizes, cache and when each app was last used.'**
+  String get usageAccessNote;
+
+  /// No description provided for @allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get allow;
+
+  /// No description provided for @neverUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used recently'**
+  String get neverUsed;
+
+  /// No description provided for @lastUsedUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Last use: allow Usage access'**
+  String get lastUsedUnknown;
+
+  /// No description provided for @lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get lastUsed;
+
+  /// No description provided for @leftoversTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders left behind'**
+  String get leftoversTitle;
+
+  /// No description provided for @leftoversNote.
+  ///
+  /// In en, this message translates to:
+  /// **'These folders belonged to the removed apps. Untick anything you want to keep.'**
+  String get leftoversNote;
+
+  /// No description provided for @keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keep;
+
+  /// No description provided for @deletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items deleted'**
+  String deletedCount(int count);
+
+  /// No description provided for @rescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get rescan;
+
+  /// No description provided for @clearAllCaches.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all app caches'**
+  String get clearAllCaches;
+
+  /// No description provided for @clearAllCachesQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all app caches?'**
+  String get clearAllCachesQ;
+
+  /// No description provided for @clearAllCachesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Android will ask you to confirm. Apps keep their data and logins — only temporary files are removed and rebuilt when needed.'**
+  String get clearAllCachesNote;
+
+  /// No description provided for @clearAllCachesUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Android 11+ and \"All files access\". On older Android open an app\'s info page to clear its cache.'**
+  String get clearAllCachesUnavailable;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @deleteJunkQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} items?'**
+  String deleteJunkQ(int count);
+
+  /// No description provided for @deleteJunkNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is permanent — the items do not go to the recycle bin.'**
+  String get deleteJunkNote;
+
+  /// No description provided for @junkThumbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail caches'**
+  String get junkThumbs;
+
+  /// No description provided for @junkTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary files'**
+  String get junkTemp;
+
+  /// No description provided for @junkCacheDirs.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache folders'**
+  String get junkCacheDirs;
+
+  /// No description provided for @junkTempDirs.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Temp\" folders (check before deleting)'**
+  String get junkTempDirs;
+
+  /// No description provided for @junkLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Log files'**
+  String get junkLogs;
+
+  /// No description provided for @junkEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty folders'**
+  String get junkEmpty;
+
+  /// No description provided for @junkLeftovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Left by uninstalled apps'**
+  String get junkLeftovers;
+
+  /// No description provided for @junkNova.
+  ///
+  /// In en, this message translates to:
+  /// **'Nova temporary files'**
+  String get junkNova;
+
+  /// No description provided for @deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected'**
+  String get deleteSelected;
+
+  /// No description provided for @scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning…'**
+  String get scanning;
+
+  /// No description provided for @appCaches.
+  ///
+  /// In en, this message translates to:
+  /// **'App caches'**
+  String get appCaches;
+
+  /// No description provided for @appCachesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an app to open its settings and clear only that app.'**
+  String get appCachesNote;
+
+  /// No description provided for @junkFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unneeded files'**
+  String get junkFiles;
+
+  /// No description provided for @selectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Select none'**
+  String get selectNone;
+
+  /// No description provided for @noJunk.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to clean — nice!'**
+  String get noJunk;
+
+  /// No description provided for @catImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get catImages;
+
+  /// No description provided for @catVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get catVideos;
+
+  /// No description provided for @catAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get catAudio;
+
+  /// No description provided for @catDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get catDocuments;
+
+  /// No description provided for @catArchives.
+  ///
+  /// In en, this message translates to:
+  /// **'Archives'**
+  String get catArchives;
+
+  /// No description provided for @catApks.
+  ///
+  /// In en, this message translates to:
+  /// **'Installers (APK)'**
+  String get catApks;
+
+  /// No description provided for @catLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large files (100 MB+)'**
+  String get catLarge;
+
+  /// No description provided for @catOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other files'**
+  String get catOther;
+
+  /// No description provided for @moveToBinQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count} files to the recycle bin?'**
+  String moveToBinQ(int count);
+
+  /// No description provided for @moveToBinNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You can restore them from the recycle bin.'**
+  String get moveToBinNote;
+
+  /// No description provided for @movedToBinN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} moved to the recycle bin'**
+  String movedToBinN(int count);
+
+  /// No description provided for @moveFilesQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count} files here?'**
+  String moveFilesQ(int count);
+
+  /// No description provided for @move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get move;
+
+  /// No description provided for @movedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} files moved'**
+  String movedCount(int count);
+
+  /// No description provided for @pcAddressHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the address and code from Nova Transfer → Connection (not \"Other devices\").'**
+  String get pcAddressHelp;
+
+  /// No description provided for @pcAddressBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the PC address like 192.168.1.10 or 192.168.1.10:48320'**
+  String get pcAddressBad;
+
+  /// No description provided for @pcOtherDevicesCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That address/code belongs to \"Other devices\". For your own PC use Nova Transfer → Connection; for extra devices use Nova → Other devices.'**
+  String get pcOtherDevicesCode;
 }
 
 class _AppLocalizationsDelegate

@@ -34,6 +34,12 @@ import javax.crypto.spec.GCMParameterSpec
 // FlutterFragmentActivity is required by local_auth for the biometric prompt.
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "dev.nova.nova_file_manager/storage"
+    private val apps by lazy { AppsHelper(this) }
+
+    override fun onDestroy() {
+        apps.holdMulticast(false)
+        super.onDestroy()
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -52,6 +58,33 @@ class MainActivity : FlutterFragmentActivity() {
                             }
                         }
                         "getInstalledAppCount" -> result.success(getInstalledAppCount())
+                        "appsUsageAccess" -> result.success(apps.hasUsageAccess())
+                        "appsOpenUsageAccess" -> {
+                            apps.openUsageAccess()
+                            result.success(true)
+                        }
+                        "appsList" -> runBg(result) { apps.userApps() }
+                        "appsAllPackages" -> runBg(result) { apps.allPackages() }
+                        "appsIcon" -> {
+                            val pkg = call.argument<String>("pkg") ?: ""
+                            runBg(result) { apps.appIcon(pkg, 96) }
+                        }
+                        "appsIsInstalled" -> result.success(
+                            apps.isInstalled(call.argument<String>("pkg") ?: ""),
+                        )
+                        "appsUninstall" -> {
+                            apps.uninstall(call.argument<String>("pkg") ?: "")
+                            result.success(true)
+                        }
+                        "appsOpenInfo" -> {
+                            apps.openAppInfo(call.argument<String>("pkg") ?: "")
+                            result.success(true)
+                        }
+                        "appsClearAllCaches" -> result.success(apps.clearAllCaches())
+                        "multicastLock" -> {
+                            apps.holdMulticast(call.argument<Boolean>("on") ?: true)
+                            result.success(true)
+                        }
                         "openFile" -> {
                             val path = call.argument<String>("path")
                             if (path == null) {

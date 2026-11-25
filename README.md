@@ -1,8 +1,11 @@
+<p align="center"><img src="newIconNova.svg" width="112" alt="Nova"></p>
+
 # Nova File Manager
 
 A fast, privacy-friendly file manager for **Android** with a companion
 **Nova Transfer** desktop app for **Windows** — browse, search, vault,
-and transfer files between your phone and PC over your local network.
+clean up and transfer files between your phone, your PC and your other
+devices over your local network.
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
@@ -24,8 +27,20 @@ Get the latest Android APK and the Windows installer from
 
 ### Nova File Manager (Android)
 
-- **Storage dashboard** — used/free space for internal storage and SD card,
-  plus quick stats at a glance.
+- **Storage dashboard** — used/free space for internal storage and SD card;
+  Home lists Installed apps, Files, PC share, Other devices, Vault and
+  Recycle bin.
+- **Installed apps** — your apps with version, size and last-used time;
+  tick several to uninstall one after another (each confirmed). Folders
+  the removed apps leave in your storage are found and offered for
+  deletion.
+- **Cleaner** — app cache sizes, one-tap "clear all app caches" (Android
+  11+, system-confirmed), and unneeded files: thumbnail caches, cache and
+  temp folders, logs, empty folders, leftovers of uninstalled apps.
+  Nothing is deleted without asking.
+- **Files by category** — images, videos, audio, documents, archives,
+  APKs, large files (100 MB+) and others, with counts and sizes; sort,
+  select, move or delete (to the recycle bin).
 - **Two storage volumes** — browse internal storage and SD card, switch
   via a dropdown (also exposes Vault and PC share when connected).
 - **Three view modes** — detailed list (name, size, date+time), medium

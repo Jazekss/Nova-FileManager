@@ -2,7 +2,7 @@
 ; Build: ISCC installer.iss  (from desktop\nova_transfer\)
 
 #define AppName "Nova Transfer"
-#define AppVersion "1.1.0"
+#define AppVersion "1.2.0"
 #define AppPublisher "JKdizains"
 #define AppURL "https://jkdizains.lv"
 #define AppExe "NovaTransfer.exe"
@@ -18,7 +18,7 @@ DefaultDirName={autopf}\JKapps\Nova Transfer
 UsePreviousAppDir=no
 DefaultGroupName=JKapps\{#AppName}
 OutputDir=..\..\BUILDS
-OutputBaseFilename=NovaTransfer_1.1.0_windows-setup_2026-11-15
+OutputBaseFilename=NovaTransfer_1.2.0_windows-setup_2026-11-25
 SetupIconFile=windows\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
 Compression=lzma2/ultra64

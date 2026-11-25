@@ -11,6 +11,8 @@ import '../../../core/utils/format.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../recycle_bin/application/recycle_bin_controller.dart';
 import '../../recycle_bin/presentation/recycle_bin_screen.dart';
+import '../../apps/presentation/apps_screen.dart';
+import '../../categories/presentation/categories_screen.dart';
 import '../../devices/presentation/other_devices_screen.dart';
 import '../../pc_share/presentation/pc_share_screen.dart';
 import '../../vault/data/vault_service.dart';
@@ -108,75 +110,41 @@ class _HomeScreenState extends State<HomeScreen> {
               loading: _loading,
             ),
             const SizedBox(height: AppTokens.spacingMd),
-            if (_appCount != null)
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.apps),
-                  title: Text(l10n(context).installedApps),
-                  trailing: Text(
-                    '$_appCount',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-              ),
-            const SizedBox(height: AppTokens.spacingMd),
+            // Order: Installed apps, Files, PC share, Other devices,
+            // Vault, Recycle bin — the rest stays below.
+            _NavCard(
+              icon: Icons.apps,
+              title: l10n(context).installedApps,
+              subtitle: _appCount == null
+                  ? l10n(context).appsCardSubtitle
+                  : '${l10n(context).appsCardSubtitle} · $_appCount',
+              page: () => const AppsScreen(),
+            ),
+            _NavCard(
+              icon: Icons.folder_copy_outlined,
+              title: l10n(context).files,
+              subtitle: l10n(context).filesCardSubtitle,
+              page: () => const CategoriesScreen(),
+            ),
+            _NavCard(
+              icon: Icons.desktop_windows_outlined,
+              title: l10n(context).pcShare,
+              subtitle: l10n(context).pairWithPc,
+              page: () => const PcShareScreen(),
+            ),
+            _NavCard(
+              icon: Icons.devices_other_outlined,
+              title: l10n(context).otherDevices,
+              subtitle: l10n(context).otherDevicesCard,
+              page: () => const OtherDevicesScreen(),
+            ),
+            _NavCard(
+              icon: Icons.lock_outline,
+              title: l10n(context).vault,
+              subtitle: l10n(context).vaultCardSubtitle,
+              page: () => VaultScreen(service: context.read<VaultService>()),
+            ),
             _BinCard(unit: unit),
-            const SizedBox(height: AppTokens.spacingMd),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.desktop_windows_outlined),
-                title: Text(l10n(context).pcShare),
-                subtitle: Text(l10n(context).pairWithPc),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const PcShareScreen(),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppTokens.spacingMd),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.devices_other_outlined),
-                title: Text(l10n(context).otherDevices),
-                subtitle: Text(l10n(context).otherDevicesCard),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const OtherDevicesScreen(),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppTokens.spacingMd),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: Text(l10n(context).vault),
-                subtitle: Text(l10n(context).vaultCardSubtitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        VaultScreen(service: context.read<VaultService>()),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppTokens.spacingMd),
-            // Drive is intentionally inactive until OAuth verification is
-            // finished — the card is visibly dimmed and does not navigate.
-            Card(
-              child: Opacity(
-                opacity: 0.55,
-                child: ListTile(
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: const Text('Google Drive'),
-                  subtitle: Text(l10n(context).comingSoon),
-                ),
-              ),
-            ),
             const SizedBox(height: AppTokens.spacingMd),
             if (widget.onOpenFolder != null)
               _QuickAccess(
@@ -190,6 +158,38 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+/// One home entry: icon, title, subtitle, chevron → [page].
+class _NavCard extends StatelessWidget {
+  const _NavCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.page,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget Function() page;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: AppTokens.spacingSm),
+    child: Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute<void>(builder: (_) => page())),
+      ),
+    ),
+  );
 }
 
 class _StorageCard extends StatelessWidget {

@@ -778,8 +778,10 @@ class _DevicesDialogState extends State<DevicesDialog> {
 
   Future<void> _addByAddress() async {
     final t = _t(context);
-    final m = RegExp(r'^([0-9]{1,3}(?:\.[0-9]{1,3}){3})(?::([0-9]{1,5}))?$')
-        .firstMatch(_addr.text.trim());
+    // Lenient: "http://1.2.3.4:48331/", "1.2.3.4 : 48331", "1,2,3,4".
+    final m = RegExp(
+      r'(\d{1,3}[.,]\d{1,3}[.,]\d{1,3}[.,]\d{1,3})(?:\s*:\s*(\d{1,5}))?',
+    ).firstMatch(_addr.text.trim());
     if (m == null) {
       setState(() => _msg = t.deviceUnreachable);
       return;
@@ -790,7 +792,7 @@ class _DevicesDialogState extends State<DevicesDialog> {
     });
     try {
       final p = await node.pairWith(
-        m.group(1)!,
+        m.group(1)!.replaceAll(',', '.'),
         int.tryParse(m.group(2) ?? '') ?? 48331,
         _code.text,
       );

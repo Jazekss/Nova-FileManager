@@ -119,13 +119,6 @@ class _SearchScreenState extends State<SearchScreen> {
                             selected: selectedVolume == v,
                             onSelected: (_) => setState(() => _volume = v),
                           ),
-                        // Placeholder until Drive integration is verified.
-                        ChoiceChip(
-                          label: Text('Google Drive'),
-                          avatar: const Icon(Icons.cloud_outlined, size: 16),
-                          selected: false,
-                          onSelected: null,
-                        ),
                       ],
                     ),
                   ),

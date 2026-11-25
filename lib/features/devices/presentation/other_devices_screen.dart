@@ -190,8 +190,10 @@ class _OtherDevicesScreenState extends State<OtherDevicesScreen> {
     addr.dispose();
     code.dispose();
     if (ok != true || a.isEmpty) return;
-    final m = RegExp(r'^([0-9]{1,3}(?:\.[0-9]{1,3}){3})(?::([0-9]{1,5}))?$')
-        .firstMatch(a);
+    // Lenient: "http://1.2.3.4:48330/", "1.2.3.4 : 48330", "1,2,3,4".
+    final m = RegExp(
+      r'(\d{1,3}[.,]\d{1,3}[.,]\d{1,3}[.,]\d{1,3})(?:\s*:\s*(\d{1,5}))?',
+    ).firstMatch(a);
     if (m == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -200,7 +202,7 @@ class _OtherDevicesScreenState extends State<OtherDevicesScreen> {
     }
     await _run(
       () => _mesh.node.pairWith(
-        m.group(1)!,
+        m.group(1)!.replaceAll(',', '.'),
         int.tryParse(m.group(2) ?? '') ?? 48330,
         c,
       ),

@@ -691,4 +691,236 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addShare => 'Ordner oder Datei teilen';
+
+  @override
+  String get appsCardSubtitle => 'Größe, zuletzt genutzt, deinstallieren';
+
+  @override
+  String get files => 'Dateien';
+
+  @override
+  String get filesCardSubtitle =>
+      'Fotos, Videos, Dokumente u. a. nach Kategorie';
+
+  @override
+  String get uninstall => 'Deinstallieren';
+
+  @override
+  String uninstallQ(int count) {
+    return '$count Apps deinstallieren?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android fragt bei jeder App nach. Beim Deinstallieren werden auch Cache und private Daten gelöscht; zurückgelassene Ordner bieten wir danach zum Löschen an.';
+
+  @override
+  String uninstalledCount(int count) {
+    return '$count Apps deinstalliert';
+  }
+
+  @override
+  String get total => 'Gesamt';
+
+  @override
+  String get appInfo => 'App-Info';
+
+  @override
+  String get appInfoNote =>
+      'Cache oder Daten dieser App in den Android-Einstellungen leeren';
+
+  @override
+  String get cleaner => 'Bereinigung';
+
+  @override
+  String get sortBySize => 'Größe';
+
+  @override
+  String get sortByLastUsed => 'Zuletzt genutzt (älteste zuerst)';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortByDate => 'Datum';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count Apps · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Cache';
+
+  @override
+  String get usageAccessTitle => '„Nutzungsdatenzugriff“ erlauben';
+
+  @override
+  String get usageAccessNote =>
+      'Nötig, um volle App-Größe, Cache und letzte Nutzung anzuzeigen.';
+
+  @override
+  String get allow => 'Erlauben';
+
+  @override
+  String get neverUsed => 'Länger nicht genutzt';
+
+  @override
+  String get lastUsedUnknown => 'Zuletzt genutzt: Nutzungszugriff erlauben';
+
+  @override
+  String get lastUsed => 'Zuletzt genutzt';
+
+  @override
+  String get leftoversTitle => 'Zurückgelassene Ordner';
+
+  @override
+  String get leftoversNote =>
+      'Diese Ordner gehörten zu den entfernten Apps. Entferne das Häkchen bei allem, was bleiben soll.';
+
+  @override
+  String get keep => 'Behalten';
+
+  @override
+  String deletedCount(int count) {
+    return '$count Elemente gelöscht';
+  }
+
+  @override
+  String get rescan => 'Erneut scannen';
+
+  @override
+  String get clearAllCaches => 'Cache aller Apps leeren';
+
+  @override
+  String get clearAllCachesQ => 'Cache aller Apps leeren?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android fragt nach. Apps behalten Daten und Anmeldungen – nur temporäre Dateien werden entfernt.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Benötigt Android 11+ und Zugriff auf alle Dateien. Bei älterem Android die App-Info öffnen.';
+
+  @override
+  String get clear => 'Leeren';
+
+  @override
+  String deleteJunkQ(int count) {
+    return '$count Elemente löschen?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Das ist endgültig – nichts landet im Papierkorb.';
+
+  @override
+  String get junkThumbs => 'Vorschaubild-Caches';
+
+  @override
+  String get junkTemp => 'Temporäre Dateien';
+
+  @override
+  String get junkCacheDirs => 'Cache-Ordner';
+
+  @override
+  String get junkTempDirs => '„Temp“-Ordner (vorher prüfen)';
+
+  @override
+  String get junkLogs => 'Protokolldateien';
+
+  @override
+  String get junkEmpty => 'Leere Ordner';
+
+  @override
+  String get junkLeftovers => 'Von deinstallierten Apps';
+
+  @override
+  String get junkNova => 'Temporäre Nova-Dateien';
+
+  @override
+  String get deleteSelected => 'Ausgewählte löschen';
+
+  @override
+  String get scanning => 'Wird gescannt…';
+
+  @override
+  String get appCaches => 'App-Caches';
+
+  @override
+  String get appCachesNote =>
+      'Tippe auf eine App, um nur deren Cache in den Einstellungen zu leeren.';
+
+  @override
+  String get junkFiles => 'Unnötige Dateien';
+
+  @override
+  String get selectNone => 'Keine auswählen';
+
+  @override
+  String get noJunk => 'Nichts zu bereinigen – super!';
+
+  @override
+  String get catImages => 'Bilder';
+
+  @override
+  String get catVideos => 'Videos';
+
+  @override
+  String get catAudio => 'Audio';
+
+  @override
+  String get catDocuments => 'Dokumente';
+
+  @override
+  String get catArchives => 'Archive';
+
+  @override
+  String get catApks => 'Installationsdateien (APK)';
+
+  @override
+  String get catLarge => 'Große Dateien (100 MB+)';
+
+  @override
+  String get catOther => 'Andere Dateien';
+
+  @override
+  String moveToBinQ(int count) {
+    return '$count Dateien in den Papierkorb verschieben?';
+  }
+
+  @override
+  String get moveToBinNote =>
+      'Du kannst sie aus dem Papierkorb wiederherstellen.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count in den Papierkorb verschoben';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return '$count Dateien hierher verschieben?';
+  }
+
+  @override
+  String get move => 'Verschieben';
+
+  @override
+  String movedCount(int count) {
+    return '$count Dateien verschoben';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Adresse und Code aus Nova Transfer → Verbindung verwenden (nicht „Andere Geräte“).';
+
+  @override
+  String get pcAddressBad =>
+      'Adresse eingeben, z. B. 192.168.1.10 oder 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Diese Adresse/dieser Code gehört zu „Andere Geräte“. Für deinen PC: Nova Transfer → Verbindung.';
 }

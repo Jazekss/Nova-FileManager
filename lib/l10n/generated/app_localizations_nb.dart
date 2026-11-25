@@ -687,4 +687,235 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get addShare => 'Del en mappe eller fil';
+
+  @override
+  String get appsCardSubtitle => 'Størrelser, sist brukt, avinstaller';
+
+  @override
+  String get files => 'Filer';
+
+  @override
+  String get filesCardSubtitle =>
+      'Bilder, video, dokumenter m.m. etter kategori';
+
+  @override
+  String get uninstall => 'Avinstaller';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Avinstallere $count apper?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android ber deg bekrefte hver app. Avinstallering fjerner også appens hurtigbuffer og private data; mapper den etterlot tilbys slettet etterpå.';
+
+  @override
+  String uninstalledCount(int count) {
+    return '$count apper avinstallert';
+  }
+
+  @override
+  String get total => 'Totalt';
+
+  @override
+  String get appInfo => 'Appinfo';
+
+  @override
+  String get appInfoNote =>
+      'Tøm appens hurtigbuffer eller data i Android-innstillinger';
+
+  @override
+  String get cleaner => 'Opprydding';
+
+  @override
+  String get sortBySize => 'Størrelse';
+
+  @override
+  String get sortByLastUsed => 'Sist brukt (eldste først)';
+
+  @override
+  String get sortByName => 'Navn';
+
+  @override
+  String get sortByDate => 'Dato';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count apper · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Hurtigbuffer';
+
+  @override
+  String get usageAccessTitle => 'Tillat «Brukstilgang»';
+
+  @override
+  String get usageAccessNote =>
+      'Trengs for å vise full appstørrelse, hurtigbuffer og når appen sist ble brukt.';
+
+  @override
+  String get allow => 'Tillat';
+
+  @override
+  String get neverUsed => 'Ikke brukt nylig';
+
+  @override
+  String get lastUsedUnknown => 'Sist brukt: tillat brukstilgang';
+
+  @override
+  String get lastUsed => 'Sist brukt';
+
+  @override
+  String get leftoversTitle => 'Mapper som ble igjen';
+
+  @override
+  String get leftoversNote =>
+      'Disse mappene tilhørte de fjernede appene. Fjern haken for det du vil beholde.';
+
+  @override
+  String get keep => 'Behold';
+
+  @override
+  String deletedCount(int count) {
+    return '$count elementer slettet';
+  }
+
+  @override
+  String get rescan => 'Skann på nytt';
+
+  @override
+  String get clearAllCaches => 'Tøm hurtigbuffer for alle apper';
+
+  @override
+  String get clearAllCachesQ => 'Tømme hurtigbuffer for alle apper?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android ber deg bekrefte. Appene beholder data og innlogging — bare midlertidige filer fjernes.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Krever Android 11+ og tilgang til alle filer. På eldre Android: åpne appinfo.';
+
+  @override
+  String get clear => 'Tøm';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Slette $count elementer?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Dette er permanent — elementene går ikke til papirkurven.';
+
+  @override
+  String get junkThumbs => 'Miniatyrbuffer';
+
+  @override
+  String get junkTemp => 'Midlertidige filer';
+
+  @override
+  String get junkCacheDirs => 'Buffermapper';
+
+  @override
+  String get junkTempDirs => '«Temp»-mapper (sjekk først)';
+
+  @override
+  String get junkLogs => 'Loggfiler';
+
+  @override
+  String get junkEmpty => 'Tomme mapper';
+
+  @override
+  String get junkLeftovers => 'Etterlatt av avinstallerte apper';
+
+  @override
+  String get junkNova => 'Novas midlertidige filer';
+
+  @override
+  String get deleteSelected => 'Slett valgte';
+
+  @override
+  String get scanning => 'Skanner…';
+
+  @override
+  String get appCaches => 'Apphurtigbuffer';
+
+  @override
+  String get appCachesNote =>
+      'Trykk på en app for å åpne innstillingene og tømme bare den.';
+
+  @override
+  String get junkFiles => 'Unødvendige filer';
+
+  @override
+  String get selectNone => 'Velg ingen';
+
+  @override
+  String get noJunk => 'Ingenting å rydde — flott!';
+
+  @override
+  String get catImages => 'Bilder';
+
+  @override
+  String get catVideos => 'Videoer';
+
+  @override
+  String get catAudio => 'Lyd';
+
+  @override
+  String get catDocuments => 'Dokumenter';
+
+  @override
+  String get catArchives => 'Arkiver';
+
+  @override
+  String get catApks => 'Installasjonsfiler (APK)';
+
+  @override
+  String get catLarge => 'Store filer (100 MB+)';
+
+  @override
+  String get catOther => 'Andre filer';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Flytte $count filer til papirkurven?';
+  }
+
+  @override
+  String get moveToBinNote => 'Du kan gjenopprette dem fra papirkurven.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count flyttet til papirkurven';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Flytte $count filer hit?';
+  }
+
+  @override
+  String get move => 'Flytt';
+
+  @override
+  String movedCount(int count) {
+    return '$count filer flyttet';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Bruk adresse og kode fra Nova Transfer → Tilkobling (ikke «Andre enheter»).';
+
+  @override
+  String get pcAddressBad =>
+      'Skriv adressen, f.eks. 192.168.1.10 eller 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Denne adressen/koden hører til «Andre enheter». For din egen PC: Nova Transfer → Tilkobling.';
 }

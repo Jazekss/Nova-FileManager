@@ -68,7 +68,13 @@ void main() {
 
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.text('Home'), findsWidgets);
-    expect(find.text('Files'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Files'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Search'), findsWidgets);
     expect(find.text('Nova File Manager'), findsOneWidget);
   });

@@ -690,4 +690,236 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get addShare => 'Bendrinti aplanką ar failą';
+
+  @override
+  String get appsCardSubtitle => 'Dydžiai, paskutinis naudojimas, šalinimas';
+
+  @override
+  String get files => 'Failai';
+
+  @override
+  String get filesCardSubtitle =>
+      'Nuotraukos, vaizdo įrašai, dokumentai pagal kategorijas';
+
+  @override
+  String get uninstall => 'Pašalinti';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Pašalinti $count programas?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android paprašys patvirtinti kiekvieną programą. Pašalinus ištrinama ir programos talpykla bei privatūs duomenys; paliktus aplankus vėliau pasiūlysime ištrinti.';
+
+  @override
+  String uninstalledCount(int count) {
+    return 'Pašalinta programų: $count';
+  }
+
+  @override
+  String get total => 'Iš viso';
+
+  @override
+  String get appInfo => 'Programos informacija';
+
+  @override
+  String get appInfoNote =>
+      'Android nustatymuose galite išvalyti šios programos talpyklą ar duomenis';
+
+  @override
+  String get cleaner => 'Valymas';
+
+  @override
+  String get sortBySize => 'Dydis';
+
+  @override
+  String get sortByLastUsed => 'Paskutinis naudojimas (seniausios pirmos)';
+
+  @override
+  String get sortByName => 'Pavadinimas';
+
+  @override
+  String get sortByDate => 'Data';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count programos · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Talpykla';
+
+  @override
+  String get usageAccessTitle => 'Leiskite „Naudojimo prieiga“';
+
+  @override
+  String get usageAccessNote =>
+      'Reikia, kad būtų rodomas visas programų dydis, talpykla ir paskutinio naudojimo laikas.';
+
+  @override
+  String get allow => 'Leisti';
+
+  @override
+  String get neverUsed => 'Neseniai nenaudota';
+
+  @override
+  String get lastUsedUnknown =>
+      'Paskutinis naudojimas: leiskite naudojimo prieigą';
+
+  @override
+  String get lastUsed => 'Pask. naudota';
+
+  @override
+  String get leftoversTitle => 'Palikę aplankai';
+
+  @override
+  String get leftoversNote =>
+      'Šie aplankai priklausė pašalintoms programoms. Nuimkite žymę nuo to, ką norite palikti.';
+
+  @override
+  String get keep => 'Palikti';
+
+  @override
+  String deletedCount(int count) {
+    return 'Ištrinta: $count';
+  }
+
+  @override
+  String get rescan => 'Skenuoti iš naujo';
+
+  @override
+  String get clearAllCaches => 'Išvalyti visų programų talpyklą';
+
+  @override
+  String get clearAllCachesQ => 'Išvalyti visų programų talpyklą?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android paprašys patvirtinti. Programos išsaugo duomenis ir prisijungimus — ištrinami tik laikini failai.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Reikia Android 11+ ir prieigos prie visų failų. Senesniame Android atidarykite programos informaciją.';
+
+  @override
+  String get clear => 'Išvalyti';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Ištrinti $count elementus?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Tai negrįžtama — elementai nepatenka į šiukšlinę.';
+
+  @override
+  String get junkThumbs => 'Miniatiūrų talpyklos';
+
+  @override
+  String get junkTemp => 'Laikini failai';
+
+  @override
+  String get junkCacheDirs => 'Talpyklos aplankai';
+
+  @override
+  String get junkTempDirs => '„Temp“ aplankai (patikrinkite)';
+
+  @override
+  String get junkLogs => 'Žurnalų failai';
+
+  @override
+  String get junkEmpty => 'Tušti aplankai';
+
+  @override
+  String get junkLeftovers => 'Paliko pašalintos programos';
+
+  @override
+  String get junkNova => 'Nova laikini failai';
+
+  @override
+  String get deleteSelected => 'Ištrinti pažymėtus';
+
+  @override
+  String get scanning => 'Skenuojama…';
+
+  @override
+  String get appCaches => 'Programų talpyklos';
+
+  @override
+  String get appCachesNote =>
+      'Bakstelėkite programą, kad atidarytumėte jos nustatymus ir išvalytumėte tik ją.';
+
+  @override
+  String get junkFiles => 'Nereikalingi failai';
+
+  @override
+  String get selectNone => 'Nieko nežymėti';
+
+  @override
+  String get noJunk => 'Nėra ką valyti — puiku!';
+
+  @override
+  String get catImages => 'Nuotraukos';
+
+  @override
+  String get catVideos => 'Vaizdo įrašai';
+
+  @override
+  String get catAudio => 'Garso įrašai';
+
+  @override
+  String get catDocuments => 'Dokumentai';
+
+  @override
+  String get catArchives => 'Archyvai';
+
+  @override
+  String get catApks => 'Diegimo failai (APK)';
+
+  @override
+  String get catLarge => 'Dideli failai (100 MB+)';
+
+  @override
+  String get catOther => 'Kiti failai';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Perkelti $count failus į šiukšlinę?';
+  }
+
+  @override
+  String get moveToBinNote => 'Juos galėsite atkurti iš šiukšlinės.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count perkelta į šiukšlinę';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Perkelti $count failus čia?';
+  }
+
+  @override
+  String get move => 'Perkelti';
+
+  @override
+  String movedCount(int count) {
+    return 'Perkelta failų: $count';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Naudokite adresą ir kodą iš Nova Transfer → Ryšys (ne „Kiti įrenginiai“).';
+
+  @override
+  String get pcAddressBad =>
+      'Įveskite adresą, pvz., 192.168.1.10 arba 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Šis adresas/kodas yra iš „Kiti įrenginiai“. Savo kompiuteriui naudokite Nova Transfer → Ryšys.';
 }

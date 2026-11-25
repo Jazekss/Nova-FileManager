@@ -690,4 +690,235 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get addShare => 'Udostępnij folder lub plik';
+
+  @override
+  String get appsCardSubtitle => 'Rozmiar, ostatnie użycie, odinstalowanie';
+
+  @override
+  String get files => 'Pliki';
+
+  @override
+  String get filesCardSubtitle =>
+      'Zdjęcia, filmy, dokumenty i inne według kategorii';
+
+  @override
+  String get uninstall => 'Odinstaluj';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Odinstalować $count aplikacje?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android poprosi o potwierdzenie każdej aplikacji. Odinstalowanie usuwa też pamięć podręczną i dane prywatne; pozostawione foldery zaproponujemy potem usunąć.';
+
+  @override
+  String uninstalledCount(int count) {
+    return 'Odinstalowano aplikacje: $count';
+  }
+
+  @override
+  String get total => 'Razem';
+
+  @override
+  String get appInfo => 'Informacje o aplikacji';
+
+  @override
+  String get appInfoNote =>
+      'Wyczyść pamięć podręczną lub dane w ustawieniach Androida';
+
+  @override
+  String get cleaner => 'Czyszczenie';
+
+  @override
+  String get sortBySize => 'Rozmiar';
+
+  @override
+  String get sortByLastUsed => 'Ostatnie użycie (najstarsze najpierw)';
+
+  @override
+  String get sortByName => 'Nazwa';
+
+  @override
+  String get sortByDate => 'Data';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count aplikacji · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Pamięć podręczna';
+
+  @override
+  String get usageAccessTitle => 'Zezwól na „Dostęp do danych o użyciu”';
+
+  @override
+  String get usageAccessNote =>
+      'Potrzebne do pokazania pełnego rozmiaru, pamięci podręcznej i ostatniego użycia.';
+
+  @override
+  String get allow => 'Zezwól';
+
+  @override
+  String get neverUsed => 'Nieużywana ostatnio';
+
+  @override
+  String get lastUsedUnknown => 'Ostatnie użycie: zezwól na dostęp do użycia';
+
+  @override
+  String get lastUsed => 'Ostatnio użyta';
+
+  @override
+  String get leftoversTitle => 'Pozostawione foldery';
+
+  @override
+  String get leftoversNote =>
+      'Te foldery należały do usuniętych aplikacji. Odznacz to, co chcesz zachować.';
+
+  @override
+  String get keep => 'Zachowaj';
+
+  @override
+  String deletedCount(int count) {
+    return 'Usunięto: $count';
+  }
+
+  @override
+  String get rescan => 'Skanuj ponownie';
+
+  @override
+  String get clearAllCaches => 'Wyczyść pamięć podręczną wszystkich aplikacji';
+
+  @override
+  String get clearAllCachesQ =>
+      'Wyczyścić pamięć podręczną wszystkich aplikacji?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android poprosi o potwierdzenie. Aplikacje zachowają dane i logowania — usuwane są tylko pliki tymczasowe.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Wymaga Androida 11+ i dostępu do wszystkich plików. Na starszym otwórz informacje o aplikacji.';
+
+  @override
+  String get clear => 'Wyczyść';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Usunąć $count elementy?';
+  }
+
+  @override
+  String get deleteJunkNote => 'To jest trwałe — elementy nie trafią do kosza.';
+
+  @override
+  String get junkThumbs => 'Pamięć miniatur';
+
+  @override
+  String get junkTemp => 'Pliki tymczasowe';
+
+  @override
+  String get junkCacheDirs => 'Foldery pamięci podręcznej';
+
+  @override
+  String get junkTempDirs => 'Foldery „Temp” (sprawdź najpierw)';
+
+  @override
+  String get junkLogs => 'Pliki dziennika';
+
+  @override
+  String get junkEmpty => 'Puste foldery';
+
+  @override
+  String get junkLeftovers => 'Po odinstalowanych aplikacjach';
+
+  @override
+  String get junkNova => 'Pliki tymczasowe Nova';
+
+  @override
+  String get deleteSelected => 'Usuń zaznaczone';
+
+  @override
+  String get scanning => 'Skanowanie…';
+
+  @override
+  String get appCaches => 'Pamięć podręczna aplikacji';
+
+  @override
+  String get appCachesNote =>
+      'Dotknij aplikacji, aby otworzyć jej ustawienia i wyczyścić tylko ją.';
+
+  @override
+  String get junkFiles => 'Niepotrzebne pliki';
+
+  @override
+  String get selectNone => 'Odznacz wszystko';
+
+  @override
+  String get noJunk => 'Nie ma czego czyścić — świetnie!';
+
+  @override
+  String get catImages => 'Obrazy';
+
+  @override
+  String get catVideos => 'Filmy';
+
+  @override
+  String get catAudio => 'Audio';
+
+  @override
+  String get catDocuments => 'Dokumenty';
+
+  @override
+  String get catArchives => 'Archiwa';
+
+  @override
+  String get catApks => 'Instalatory (APK)';
+
+  @override
+  String get catLarge => 'Duże pliki (100 MB+)';
+
+  @override
+  String get catOther => 'Inne pliki';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Przenieść $count pliki do kosza?';
+  }
+
+  @override
+  String get moveToBinNote => 'Można je przywrócić z kosza.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count przeniesiono do kosza';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Przenieść $count pliki tutaj?';
+  }
+
+  @override
+  String get move => 'Przenieś';
+
+  @override
+  String movedCount(int count) {
+    return 'Przeniesiono pliki: $count';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Użyj adresu i kodu z Nova Transfer → Połączenie (nie „Inne urządzenia”).';
+
+  @override
+  String get pcAddressBad =>
+      'Wpisz adres, np. 192.168.1.10 lub 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Ten adres/kod należy do „Inne urządzenia”. Dla własnego PC użyj Nova Transfer → Połączenie.';
 }

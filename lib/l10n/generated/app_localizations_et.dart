@@ -688,4 +688,234 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get addShare => 'Jaga kausta või faili';
+
+  @override
+  String get appsCardSubtitle => 'Suurused, viimane kasutus, eemaldamine';
+
+  @override
+  String get files => 'Failid';
+
+  @override
+  String get filesCardSubtitle =>
+      'Fotod, videod, dokumendid jm kategooriate kaupa';
+
+  @override
+  String get uninstall => 'Eemalda';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Eemaldada $count rakendust?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android küsib iga rakenduse kohta kinnitust. Eemaldamisel kustutatakse ka rakenduse vahemälu ja privaatsed andmed; mahajäänud kaustad pakume hiljem kustutada.';
+
+  @override
+  String uninstalledCount(int count) {
+    return 'Eemaldatud rakendusi: $count';
+  }
+
+  @override
+  String get total => 'Kokku';
+
+  @override
+  String get appInfo => 'Rakenduse teave';
+
+  @override
+  String get appInfoNote =>
+      'Androidi seadetes saab tühjendada selle rakenduse vahemälu või andmed';
+
+  @override
+  String get cleaner => 'Puhastus';
+
+  @override
+  String get sortBySize => 'Suurus';
+
+  @override
+  String get sortByLastUsed => 'Viimane kasutus (vanimad enne)';
+
+  @override
+  String get sortByName => 'Nimi';
+
+  @override
+  String get sortByDate => 'Kuupäev';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count rakendust · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Vahemälu';
+
+  @override
+  String get usageAccessTitle => 'Luba „Kasutusjuurdepääs“';
+
+  @override
+  String get usageAccessNote =>
+      'Vajalik rakenduste täissuuruse, vahemälu ja viimase kasutuse kuvamiseks.';
+
+  @override
+  String get allow => 'Luba';
+
+  @override
+  String get neverUsed => 'Hiljuti pole kasutatud';
+
+  @override
+  String get lastUsedUnknown => 'Viimane kasutus: luba kasutusjuurdepääs';
+
+  @override
+  String get lastUsed => 'Viimati kasutatud';
+
+  @override
+  String get leftoversTitle => 'Mahajäänud kaustad';
+
+  @override
+  String get leftoversNote =>
+      'Need kaustad kuulusid eemaldatud rakendustele. Eemalda linnuke sellelt, mida soovid alles jätta.';
+
+  @override
+  String get keep => 'Jäta alles';
+
+  @override
+  String deletedCount(int count) {
+    return 'Kustutatud: $count';
+  }
+
+  @override
+  String get rescan => 'Skanni uuesti';
+
+  @override
+  String get clearAllCaches => 'Tühjenda kõigi rakenduste vahemälu';
+
+  @override
+  String get clearAllCachesQ => 'Tühjendada kõigi rakenduste vahemälu?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android küsib kinnitust. Rakendused säilitavad andmed ja sisselogimised — kustutatakse vaid ajutised failid.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Vajab Android 11+ ja juurdepääsu kõigile failidele. Vanemas Androidis ava rakenduse teave.';
+
+  @override
+  String get clear => 'Tühjenda';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Kustutada $count üksust?';
+  }
+
+  @override
+  String get deleteJunkNote => 'See on lõplik — üksused ei lähe prügikasti.';
+
+  @override
+  String get junkThumbs => 'Pisipiltide vahemälu';
+
+  @override
+  String get junkTemp => 'Ajutised failid';
+
+  @override
+  String get junkCacheDirs => 'Vahemälu kaustad';
+
+  @override
+  String get junkTempDirs => '„Temp“ kaustad (kontrolli enne)';
+
+  @override
+  String get junkLogs => 'Logifailid';
+
+  @override
+  String get junkEmpty => 'Tühjad kaustad';
+
+  @override
+  String get junkLeftovers => 'Eemaldatud rakendustest jäänud';
+
+  @override
+  String get junkNova => 'Nova ajutised failid';
+
+  @override
+  String get deleteSelected => 'Kustuta valitud';
+
+  @override
+  String get scanning => 'Skannin…';
+
+  @override
+  String get appCaches => 'Rakenduste vahemälu';
+
+  @override
+  String get appCachesNote =>
+      'Puuduta rakendust, et avada selle seaded ja tühjendada ainult see.';
+
+  @override
+  String get junkFiles => 'Ebavajalikud failid';
+
+  @override
+  String get selectNone => 'Tühista valik';
+
+  @override
+  String get noJunk => 'Pole midagi puhastada — tore!';
+
+  @override
+  String get catImages => 'Pildid';
+
+  @override
+  String get catVideos => 'Videod';
+
+  @override
+  String get catAudio => 'Heli';
+
+  @override
+  String get catDocuments => 'Dokumendid';
+
+  @override
+  String get catArchives => 'Arhiivid';
+
+  @override
+  String get catApks => 'Installifailid (APK)';
+
+  @override
+  String get catLarge => 'Suured failid (100 MB+)';
+
+  @override
+  String get catOther => 'Muud failid';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Teisaldada $count faili prügikasti?';
+  }
+
+  @override
+  String get moveToBinNote => 'Neid saab prügikastist taastada.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count teisaldatud prügikasti';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Teisaldada $count faili siia?';
+  }
+
+  @override
+  String get move => 'Teisalda';
+
+  @override
+  String movedCount(int count) {
+    return 'Teisaldatud faile: $count';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Kasuta aadressi ja koodi Nova Transfer → Ühendus (mitte „Muud seadmed“).';
+
+  @override
+  String get pcAddressBad =>
+      'Sisesta aadress, nt 192.168.1.10 või 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'See aadress/kood on jaotisest „Muud seadmed“. Oma arvuti jaoks kasuta Nova Transfer → Ühendus.';
 }

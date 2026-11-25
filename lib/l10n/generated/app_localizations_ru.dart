@@ -689,4 +689,233 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addShare => 'Открыть папку или файл';
+
+  @override
+  String get appsCardSubtitle => 'Размер, последнее использование, удаление';
+
+  @override
+  String get files => 'Файлы';
+
+  @override
+  String get filesCardSubtitle => 'Фото, видео, документы и др. по категориям';
+
+  @override
+  String get uninstall => 'Удалить';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Удалить приложения: $count?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android попросит подтвердить каждое приложение. При удалении стираются и кэш, и личные данные; оставшиеся папки затем предложим удалить.';
+
+  @override
+  String uninstalledCount(int count) {
+    return 'Удалено приложений: $count';
+  }
+
+  @override
+  String get total => 'Всего';
+
+  @override
+  String get appInfo => 'О приложении';
+
+  @override
+  String get appInfoNote => 'Очистить кэш или данные в настройках Android';
+
+  @override
+  String get cleaner => 'Очистка';
+
+  @override
+  String get sortBySize => 'Размер';
+
+  @override
+  String get sortByLastUsed => 'Последнее использование (давние сначала)';
+
+  @override
+  String get sortByName => 'Имя';
+
+  @override
+  String get sortByDate => 'Дата';
+
+  @override
+  String appsSummary(int count, String size) {
+    return 'Приложений: $count · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Кэш';
+
+  @override
+  String get usageAccessTitle => 'Разрешите «Доступ к истории использования»';
+
+  @override
+  String get usageAccessNote =>
+      'Нужно, чтобы показать полный размер, кэш и время последнего использования.';
+
+  @override
+  String get allow => 'Разрешить';
+
+  @override
+  String get neverUsed => 'Давно не использовалось';
+
+  @override
+  String get lastUsedUnknown => 'Посл. использование: дайте доступ';
+
+  @override
+  String get lastUsed => 'Посл. запуск';
+
+  @override
+  String get leftoversTitle => 'Оставшиеся папки';
+
+  @override
+  String get leftoversNote =>
+      'Эти папки принадлежали удалённым приложениям. Снимите отметку с того, что хотите оставить.';
+
+  @override
+  String get keep => 'Оставить';
+
+  @override
+  String deletedCount(int count) {
+    return 'Удалено: $count';
+  }
+
+  @override
+  String get rescan => 'Сканировать снова';
+
+  @override
+  String get clearAllCaches => 'Очистить кэш всех приложений';
+
+  @override
+  String get clearAllCachesQ => 'Очистить кэш всех приложений?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android попросит подтвердить. Данные и входы сохранятся — удаляются только временные файлы.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Нужен Android 11+ и доступ ко всем файлам. На старых версиях откройте сведения о приложении.';
+
+  @override
+  String get clear => 'Очистить';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Удалить элементы: $count?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Это необратимо — элементы не попадут в корзину.';
+
+  @override
+  String get junkThumbs => 'Кэш миниатюр';
+
+  @override
+  String get junkTemp => 'Временные файлы';
+
+  @override
+  String get junkCacheDirs => 'Папки кэша';
+
+  @override
+  String get junkTempDirs => 'Папки «Temp» (проверьте)';
+
+  @override
+  String get junkLogs => 'Файлы журналов';
+
+  @override
+  String get junkEmpty => 'Пустые папки';
+
+  @override
+  String get junkLeftovers => 'От удалённых приложений';
+
+  @override
+  String get junkNova => 'Временные файлы Nova';
+
+  @override
+  String get deleteSelected => 'Удалить выбранное';
+
+  @override
+  String get scanning => 'Сканирование…';
+
+  @override
+  String get appCaches => 'Кэш приложений';
+
+  @override
+  String get appCachesNote =>
+      'Нажмите на приложение, чтобы очистить только его в настройках.';
+
+  @override
+  String get junkFiles => 'Ненужные файлы';
+
+  @override
+  String get selectNone => 'Снять выбор';
+
+  @override
+  String get noJunk => 'Нечего очищать — отлично!';
+
+  @override
+  String get catImages => 'Изображения';
+
+  @override
+  String get catVideos => 'Видео';
+
+  @override
+  String get catAudio => 'Аудио';
+
+  @override
+  String get catDocuments => 'Документы';
+
+  @override
+  String get catArchives => 'Архивы';
+
+  @override
+  String get catApks => 'Установщики (APK)';
+
+  @override
+  String get catLarge => 'Большие файлы (100 МБ+)';
+
+  @override
+  String get catOther => 'Другие файлы';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Переместить файлы в корзину: $count?';
+  }
+
+  @override
+  String get moveToBinNote => 'Их можно восстановить из корзины.';
+
+  @override
+  String movedToBinN(int count) {
+    return 'В корзину: $count';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Переместить файлы сюда: $count?';
+  }
+
+  @override
+  String get move => 'Переместить';
+
+  @override
+  String movedCount(int count) {
+    return 'Перемещено файлов: $count';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Используйте адрес и код из Nova Transfer → Подключение (не «Другие устройства»).';
+
+  @override
+  String get pcAddressBad =>
+      'Введите адрес, напр. 192.168.1.10 или 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Этот адрес/код из «Другие устройства». Для своего ПК: Nova Transfer → Подключение.';
 }

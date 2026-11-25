@@ -102,12 +102,14 @@ class PcClient {
   /// `novapair://` link pasted into the address field.
   Future<String?> pairWithCode(String address, String code) async {
     final a = address.trim();
-    if (a.startsWith('novapair://') || a.startsWith('http')) return pair(a);
-    final m = RegExp(r'^([0-9]{1,3}(?:\.[0-9]{1,3}){3})(?::([0-9]{1,5}))?$')
-        .firstMatch(a);
+    if (a.startsWith('novapair://')) return pair(a);
+    // Lenient: "http://1.2.3.4:48320/", "1.2.3.4 : 48320", "1,2,3,4"…
+    final m = RegExp(
+      r'(\d{1,3})[.,](\d{1,3})[.,](\d{1,3})[.,](\d{1,3})(?:\s*:\s*(\d{1,5}))?',
+    ).firstMatch(a);
     if (m == null) return 'invalid_link';
-    final h = m.group(1)!;
-    final pt = int.tryParse(m.group(2) ?? '') ?? 48320;
+    final h = '${m.group(1)}.${m.group(2)}.${m.group(3)}.${m.group(4)}';
+    final pt = int.tryParse(m.group(5) ?? '') ?? 48320;
     try {
       final r = await PairingHost.join(
         host: h,
@@ -118,7 +120,9 @@ class PcClient {
         kind: 'phone',
       );
       final tok = '${r.extra['token'] ?? ''}';
-      if (tok.isEmpty) return 'rejected';
+      // Paired with a mesh node ("Other devices") instead of the PC's
+      // own-phone pairing — tell the user which screen to use.
+      if (tok.isEmpty) return 'other_devices';
       return await pair('novapair://$h:$pt/$tok');
     } on PairError catch (e) {
       return switch (e.code) {

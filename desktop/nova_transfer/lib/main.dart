@@ -26,7 +26,7 @@ import 'settings.dart';
 
 const _coffeeUrl = 'https://www.buymeacoffee.com/jazeks';
 const _devUrl = 'https://jkdizains.lv';
-const _appVersion = '1.1.0';
+const _appVersion = '1.2.0';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

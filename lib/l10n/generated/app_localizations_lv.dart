@@ -688,4 +688,235 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get addShare => 'Koplietot mapi vai failu';
+
+  @override
+  String get appsCardSubtitle => 'Izmēri, pēdējā lietošana, atinstalēšana';
+
+  @override
+  String get files => 'Faili';
+
+  @override
+  String get filesCardSubtitle =>
+      'Attēli, video, dokumenti u.c. pa kategorijām';
+
+  @override
+  String get uninstall => 'Atinstalēt';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Atinstalēt $count lietotnes?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android katrai lietotnei prasīs apstiprinājumu. Atinstalējot tiek izdzēsta arī lietotnes kešatmiņa un privātie dati; mapes, ko tā atstājusi atmiņā, pēc tam piedāvāsim izdzēst.';
+
+  @override
+  String uninstalledCount(int count) {
+    return 'Atinstalētas $count lietotnes';
+  }
+
+  @override
+  String get total => 'Kopā';
+
+  @override
+  String get appInfo => 'Lietotnes informācija';
+
+  @override
+  String get appInfoNote =>
+      'Android iestatījumos var iztīrīt šīs lietotnes kešatmiņu vai datus';
+
+  @override
+  String get cleaner => 'Tīrīšana';
+
+  @override
+  String get sortBySize => 'Izmērs';
+
+  @override
+  String get sortByLastUsed => 'Pēdējā lietošana (vecākās vispirms)';
+
+  @override
+  String get sortByName => 'Nosaukums';
+
+  @override
+  String get sortByDate => 'Datums';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count lietotnes · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Kešatmiņa';
+
+  @override
+  String get usageAccessTitle => 'Atļauj \"Piekļuve lietojumam\"';
+
+  @override
+  String get usageAccessNote =>
+      'Vajadzīgs, lai rādītu pilnu lietotņu izmēru, kešatmiņu un kad lietotne pēdējo reizi lietota.';
+
+  @override
+  String get allow => 'Atļaut';
+
+  @override
+  String get neverUsed => 'Nesen nav lietota';
+
+  @override
+  String get lastUsedUnknown => 'Pēdējā lietošana: atļauj piekļuvi lietojumam';
+
+  @override
+  String get lastUsed => 'Pēd. lietota';
+
+  @override
+  String get leftoversTitle => 'Atstātās mapes';
+
+  @override
+  String get leftoversNote =>
+      'Šīs mapes piederēja noņemtajām lietotnēm. Noņem atzīmi tam, ko gribi paturēt.';
+
+  @override
+  String get keep => 'Paturēt';
+
+  @override
+  String deletedCount(int count) {
+    return 'Izdzēsti $count vienumi';
+  }
+
+  @override
+  String get rescan => 'Skenēt vēlreiz';
+
+  @override
+  String get clearAllCaches => 'Iztīrīt visu lietotņu kešatmiņu';
+
+  @override
+  String get clearAllCachesQ => 'Iztīrīt visu lietotņu kešatmiņu?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android lūgs apstiprināt. Lietotnes saglabā datus un pieteikšanos — tiek dzēsti tikai pagaidu faili, kas vajadzības gadījumā izveidosies no jauna.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Vajag Android 11+ un \"Piekļuvi visiem failiem\". Vecākā Android atver lietotnes informāciju un iztīri kešatmiņu tur.';
+
+  @override
+  String get clear => 'Iztīrīt';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Dzēst $count vienumus?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'Tas ir neatgriezeniski — vienumi netiek pārvietoti uz atkritni.';
+
+  @override
+  String get junkThumbs => 'Sīktēlu kešatmiņa';
+
+  @override
+  String get junkTemp => 'Pagaidu faili';
+
+  @override
+  String get junkCacheDirs => 'Kešatmiņas mapes';
+
+  @override
+  String get junkTempDirs => '\"Temp\" mapes (pārbaudi pirms dzēšanas)';
+
+  @override
+  String get junkLogs => 'Žurnālfaili';
+
+  @override
+  String get junkEmpty => 'Tukšas mapes';
+
+  @override
+  String get junkLeftovers => 'Atstājušas atinstalētās lietotnes';
+
+  @override
+  String get junkNova => 'Nova pagaidu faili';
+
+  @override
+  String get deleteSelected => 'Dzēst atzīmētos';
+
+  @override
+  String get scanning => 'Skenē…';
+
+  @override
+  String get appCaches => 'Lietotņu kešatmiņa';
+
+  @override
+  String get appCachesNote =>
+      'Pieskaries lietotnei, lai atvērtu tās iestatījumus un iztīrītu tikai to.';
+
+  @override
+  String get junkFiles => 'Nevajadzīgi faili';
+
+  @override
+  String get selectNone => 'Noņemt atzīmes';
+
+  @override
+  String get noJunk => 'Nav ko tīrīt — lieliski!';
+
+  @override
+  String get catImages => 'Attēli';
+
+  @override
+  String get catVideos => 'Video';
+
+  @override
+  String get catAudio => 'Audio';
+
+  @override
+  String get catDocuments => 'Dokumenti';
+
+  @override
+  String get catArchives => 'Arhīvi';
+
+  @override
+  String get catApks => 'Instalācijas faili (APK)';
+
+  @override
+  String get catLarge => 'Lieli faili (100 MB+)';
+
+  @override
+  String get catOther => 'Citi faili';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Pārvietot $count failus uz atkritni?';
+  }
+
+  @override
+  String get moveToBinNote => 'Tos varēs atjaunot no atkritnes.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count pārvietoti uz atkritni';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Pārvietot $count failus šeit?';
+  }
+
+  @override
+  String get move => 'Pārvietot';
+
+  @override
+  String movedCount(int count) {
+    return 'Pārvietoti $count faili';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Izmanto adresi un kodu no Nova Transfer → Savienojums (nevis \"Citas ierīces\").';
+
+  @override
+  String get pcAddressBad =>
+      'Ievadi datora adresi, piem., 192.168.1.10 vai 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'Šī adrese/kods ir no \"Citas ierīces\". Savam datoram izmanto Nova Transfer → Savienojums; papildu ierīcēm — Nova → Citas ierīces.';
 }

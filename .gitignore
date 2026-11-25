@@ -63,8 +63,8 @@ flutter_*.log
 *.iml
 .metadata
 START_PROMPT.md
-icon.png
-coffee.svg
+/icon.png
+/coffee.svg
 /Temp/
 PROJECT_MAP.md
 

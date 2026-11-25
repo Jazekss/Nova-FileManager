@@ -13,7 +13,6 @@ import 'features/devices/application/mesh_service.dart';
 import 'features/pc_share/application/pc_link_service.dart';
 import 'features/recycle_bin/application/recycle_bin_controller.dart';
 import 'features/recycle_bin/data/recycle_bin_service.dart';
-import 'features/drive/data/drive_service.dart';
 import 'features/search/application/search_controller.dart' as search;
 import 'features/vault/data/vault_service.dart';
 
@@ -43,6 +42,9 @@ Future<void> main() async {
   // slower and made PC previews crawl).
   LanStream.nativeSeal = (k, n, d, a) => _aes(true, k, n, d, a);
   LanStream.nativeOpen = (k, n, d, a) => _aes(false, k, n, d, a);
+  // Receive LAN broadcast discovery probes (many phones drop them
+  // without a multicast lock).
+  _storage.invokeMethod<bool>('multicastLock', {'on': true}).ignore();
   final settings = SettingsController();
   await settings.load();
 
@@ -86,7 +88,6 @@ Future<void> main() async {
           create: (_) => RecycleBinController(binService),
         ),
         Provider<VaultService>.value(value: vaultService),
-        Provider<DriveService>(create: (_) => DriveService()),
         ChangeNotifierProvider<PcLinkService>.value(value: pcLink),
         ChangeNotifierProvider<MeshService>.value(value: mesh),
       ],

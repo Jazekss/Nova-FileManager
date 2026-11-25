@@ -16,6 +16,7 @@ import '../../file_manager/application/file_browser_controller.dart';
 import '../../file_manager/presentation/widgets/browser_dialogs.dart';
 import '../../media/presentation/audio_player_screen.dart';
 import '../../media/presentation/video_player_screen.dart';
+import '../../devices/application/mesh_service.dart';
 import '../../devices/presentation/other_devices_screen.dart';
 import '../application/pc_link_service.dart';
 import '../data/pc_client.dart';
@@ -146,8 +147,9 @@ class _PcShareScreenState extends State<PcShareScreen> {
       setState(() {
         _loading = false;
         _error = switch (err) {
-          'invalid_link' => tr.invalidPairLink,
+          'invalid_link' => tr.pcAddressBad,
           'bad_code' => tr.pairCodeWrong,
+          'other_devices' => tr.pcOtherDevicesCode,
           'rejected' => tr.pcRejected,
           _ => '${tr.pcUnreachableHint} ($link)',
         };
@@ -183,6 +185,8 @@ class _PcShareScreenState extends State<PcShareScreen> {
                 decoration: InputDecoration(
                   labelText: tr.pcAddress,
                   hintText: '192.168.1.10:48320',
+                  helperText: tr.pcAddressHelp,
+                  helperMaxLines: 3,
                 ),
               ),
               const SizedBox(height: 12),
@@ -1037,14 +1041,69 @@ class _PcShareScreenState extends State<PcShareScreen> {
         else
           for (final r in _link.shareRoots) _shareRootTile(r),
         const Divider(height: 28),
-        ListTile(
-          leading: const Icon(Icons.devices_other_outlined),
-          title: Text(tr.otherDevices),
-          subtitle: Text(tr.otherDevicesCard),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const OtherDevicesScreen()),
+        // "Other share": paired extra phones/PCs right here, each opens
+        // its shared folders; the header button manages devices/shares.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 4, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  tr.otherDevices,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              IconButton(
+                tooltip: tr.otherDevicesCard,
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OtherDevicesScreen(),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+        Builder(
+          builder: (context) {
+            final mesh = context.watch<MeshService>();
+            if (mesh.peers.isEmpty) {
+              return ListTile(
+                dense: true,
+                leading: const Icon(Icons.add_link),
+                title: Text(tr.addDevice),
+                subtitle: Text(tr.otherDevicesCard),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OtherDevicesScreen(),
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: [
+                for (final p in mesh.peers)
+                  ListTile(
+                    dense: true,
+                    leading: Icon(
+                      p.kind == 'pc'
+                          ? Icons.desktop_windows_outlined
+                          : Icons.smartphone_outlined,
+                      color: p.online ? Colors.green : null,
+                    ),
+                    title: Text(p.name),
+                    subtitle: Text(p.online ? tr.online : tr.offline),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PeerBrowseScreen(peer: p),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );

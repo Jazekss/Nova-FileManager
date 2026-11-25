@@ -688,4 +688,235 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addShare => 'Share a folder or file';
+
+  @override
+  String get appsCardSubtitle => 'Sizes, last use, uninstall';
+
+  @override
+  String get files => 'Files';
+
+  @override
+  String get filesCardSubtitle =>
+      'Photos, videos, documents and more by category';
+
+  @override
+  String get uninstall => 'Uninstall';
+
+  @override
+  String uninstallQ(int count) {
+    return 'Uninstall $count apps?';
+  }
+
+  @override
+  String get uninstallNote =>
+      'Android asks to confirm each app. Uninstalling also removes the app\'s cache and private data; folders it left in your storage are offered for deletion afterwards.';
+
+  @override
+  String uninstalledCount(int count) {
+    return '$count apps uninstalled';
+  }
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get appInfo => 'App info';
+
+  @override
+  String get appInfoNote =>
+      'Clear this app\'s cache or data in Android settings';
+
+  @override
+  String get cleaner => 'Cleaner';
+
+  @override
+  String get sortBySize => 'Size';
+
+  @override
+  String get sortByLastUsed => 'Last used (oldest first)';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortByDate => 'Date';
+
+  @override
+  String appsSummary(int count, String size) {
+    return '$count apps · $size';
+  }
+
+  @override
+  String get cacheTotal => 'Cache';
+
+  @override
+  String get usageAccessTitle => 'Allow \"Usage access\"';
+
+  @override
+  String get usageAccessNote =>
+      'Needed to show full app sizes, cache and when each app was last used.';
+
+  @override
+  String get allow => 'Allow';
+
+  @override
+  String get neverUsed => 'Not used recently';
+
+  @override
+  String get lastUsedUnknown => 'Last use: allow Usage access';
+
+  @override
+  String get lastUsed => 'Last used';
+
+  @override
+  String get leftoversTitle => 'Folders left behind';
+
+  @override
+  String get leftoversNote =>
+      'These folders belonged to the removed apps. Untick anything you want to keep.';
+
+  @override
+  String get keep => 'Keep';
+
+  @override
+  String deletedCount(int count) {
+    return '$count items deleted';
+  }
+
+  @override
+  String get rescan => 'Scan again';
+
+  @override
+  String get clearAllCaches => 'Clear all app caches';
+
+  @override
+  String get clearAllCachesQ => 'Clear all app caches?';
+
+  @override
+  String get clearAllCachesNote =>
+      'Android will ask you to confirm. Apps keep their data and logins — only temporary files are removed and rebuilt when needed.';
+
+  @override
+  String get clearAllCachesUnavailable =>
+      'Needs Android 11+ and \"All files access\". On older Android open an app\'s info page to clear its cache.';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String deleteJunkQ(int count) {
+    return 'Delete $count items?';
+  }
+
+  @override
+  String get deleteJunkNote =>
+      'This is permanent — the items do not go to the recycle bin.';
+
+  @override
+  String get junkThumbs => 'Thumbnail caches';
+
+  @override
+  String get junkTemp => 'Temporary files';
+
+  @override
+  String get junkCacheDirs => 'Cache folders';
+
+  @override
+  String get junkTempDirs => '\"Temp\" folders (check before deleting)';
+
+  @override
+  String get junkLogs => 'Log files';
+
+  @override
+  String get junkEmpty => 'Empty folders';
+
+  @override
+  String get junkLeftovers => 'Left by uninstalled apps';
+
+  @override
+  String get junkNova => 'Nova temporary files';
+
+  @override
+  String get deleteSelected => 'Delete selected';
+
+  @override
+  String get scanning => 'Scanning…';
+
+  @override
+  String get appCaches => 'App caches';
+
+  @override
+  String get appCachesNote =>
+      'Tap an app to open its settings and clear only that app.';
+
+  @override
+  String get junkFiles => 'Unneeded files';
+
+  @override
+  String get selectNone => 'Select none';
+
+  @override
+  String get noJunk => 'Nothing to clean — nice!';
+
+  @override
+  String get catImages => 'Images';
+
+  @override
+  String get catVideos => 'Videos';
+
+  @override
+  String get catAudio => 'Audio';
+
+  @override
+  String get catDocuments => 'Documents';
+
+  @override
+  String get catArchives => 'Archives';
+
+  @override
+  String get catApks => 'Installers (APK)';
+
+  @override
+  String get catLarge => 'Large files (100 MB+)';
+
+  @override
+  String get catOther => 'Other files';
+
+  @override
+  String moveToBinQ(int count) {
+    return 'Move $count files to the recycle bin?';
+  }
+
+  @override
+  String get moveToBinNote => 'You can restore them from the recycle bin.';
+
+  @override
+  String movedToBinN(int count) {
+    return '$count moved to the recycle bin';
+  }
+
+  @override
+  String moveFilesQ(int count) {
+    return 'Move $count files here?';
+  }
+
+  @override
+  String get move => 'Move';
+
+  @override
+  String movedCount(int count) {
+    return '$count files moved';
+  }
+
+  @override
+  String get pcAddressHelp =>
+      'Use the address and code from Nova Transfer → Connection (not \"Other devices\").';
+
+  @override
+  String get pcAddressBad =>
+      'Type the PC address like 192.168.1.10 or 192.168.1.10:48320';
+
+  @override
+  String get pcOtherDevicesCode =>
+      'That address/code belongs to \"Other devices\". For your own PC use Nova Transfer → Connection; for extra devices use Nova → Other devices.';
 }

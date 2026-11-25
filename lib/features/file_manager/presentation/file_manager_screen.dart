@@ -9,8 +9,6 @@ import '../../../core/utils/l10n_ext.dart';
 import '../../../core/models/storage_volume.dart';
 import '../../archive/data/archive_service.dart';
 import '../../archive/presentation/archive_viewer_screen.dart';
-import '../../drive/data/drive_service.dart';
-import '../../drive/presentation/drive_screen.dart';
 import '../../media/data/image_convert.dart';
 import '../../media/media_router.dart';
 import '../../pc_share/presentation/pc_share_screen.dart';
@@ -545,7 +543,7 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
 }
 
 /// App-bar title: tap opens a dropdown with all storage volumes plus
-/// Google Drive (and PC share, when paired).
+/// Vault and PC share.
 class _StorageDropdown extends StatelessWidget {
   const _StorageDropdown({required this.browser});
 
@@ -559,13 +557,6 @@ class _StorageDropdown extends StatelessWidget {
       onSelected: (v) {
         if (v is StorageVolume) {
           browser.switchVolume(v);
-        } else if (v == 'drive') {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) =>
-                  DriveScreen(service: context.read<DriveService>()),
-            ),
-          );
         } else if (v == 'vault') {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -604,16 +595,6 @@ class _StorageDropdown extends StatelessWidget {
             ),
           ),
         const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'drive',
-          child: Row(
-            children: [
-              const Icon(Icons.cloud_outlined, size: 20),
-              const SizedBox(width: 8),
-              Text('Google Drive · ${tr.comingSoon}'),
-            ],
-          ),
-        ),
         PopupMenuItem(
           value: 'vault',
           child: Row(
